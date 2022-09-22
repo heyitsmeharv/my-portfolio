@@ -1,14 +1,25 @@
 import React from "react";
 import styled from "styled-components";
+import { motion } from "framer-motion";
 
 // components
 import { ContactMeButton, DownloadCVButton } from "../Button/Button";
 
 // animations
 import SlideInBottom from "../../animations/SlideInBottom";
+import { Facebook, LinkedIn, Twitter, Github } from "../../animations/SocialMediaButtons";
 
 // images
 import ProfileImg from "../../resources/images/profile-portrait.jpg";
+
+// icons
+import {
+  StyledFacebookCircle,
+  StyledLinkedinSquare,
+  StyledTwitter,
+  StyledGithub,
+} from "../../resources/styles/icons";
+
 
 const Container = styled.div`
   display: flex;
@@ -29,6 +40,63 @@ const IntroWrapper = styled.div`
 
 const ButtonWrapper = styled.div`
   display: flex;
+`;
+
+const ProfileContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const ButtonContainer = styled.div`
+  position: absolute;
+  z-index: -1;
+`;
+
+const SocialMediaButtonFacebook = styled(motion.button)`
+  animation: ${Facebook} 0.5s 0.8s forwards;
+  background: none;
+  outline: none !important;
+  border: none;
+  /* position: absolute; */
+  z-index: 20000;
+  :hover {
+    cursor: pointer;
+  };
+`;
+
+const SocialMediaButtonTwitter = styled(motion.button)`
+  animation: ${Twitter} 0.5s 0.7s forwards;
+  background: none;
+  outline: none !important;
+  border: none;
+  position: absolute;
+  :hover {
+    cursor: pointer;
+  };
+`;
+
+
+const SocialMediaButtonLinkedIn = styled(motion.button)`
+  animation: ${LinkedIn} 0.5s 0.6s forwards;
+  background: none;
+  outline: none !important;
+  border: none;
+  position: absolute;
+  :hover {
+    cursor: pointer;
+  };
+`;
+
+
+const SocialMediaButtonGithub = styled(motion.button)`
+  animation: ${Github} 0.5s 0.5s forwards;
+  background: none;
+  outline: none !important;
+  border: none;
+  position: absolute;
+  :hover {
+    cursor: pointer;
+  };
 `;
 
 const ProfileImage = styled.img`
@@ -73,7 +141,41 @@ const StyledAnchor = styled.a`
 const Introduction = ({ open, setOpen }) => {
   return (
     <Container>
-      <ProfileImage src={ProfileImg} />
+      <ProfileContainer>
+        <ProfileImage src={ProfileImg} />
+        <ButtonContainer>
+          <SocialMediaButtonFacebook
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}>
+            <a target='_blank' href="https://www.facebook.com/adam.harvey.73/">
+              <StyledFacebookCircle />
+            </a>
+          </SocialMediaButtonFacebook>
+          <SocialMediaButtonTwitter
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}>
+            <a target='_blank' href="https://twitter.com/heyitsmeharv">
+              <StyledTwitter />
+            </a>
+          </SocialMediaButtonTwitter>
+          <SocialMediaButtonLinkedIn
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}>
+            <a target='_blank' href="https://www.linkedin.com/in/heyitsmeharv/">
+              <StyledLinkedinSquare />
+            </a>
+          </SocialMediaButtonLinkedIn>
+          <SocialMediaButtonGithub
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}>
+            <a target='_blank' href="https://github.com/heyitsmeharv">
+              <StyledGithub />
+            </a>
+          </SocialMediaButtonGithub>
+        </ButtonContainer>
+        {/* <CircleTwo />
+        <CircleThree /> */}
+      </ProfileContainer>
       <IntroWrapper>
         <Intro>
           Hello 👋, my name is Adam. I'm a software engineer from Oxford, England.
