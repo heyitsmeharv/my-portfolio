@@ -264,14 +264,6 @@ export default function Blog() {
     }
   ];
 
-  useEffect(() => {
-    if (search !== '') {
-      setBlogPosts(blogPosts.filter(x => x.title.toLowerCase().includes(search.toLowerCase()) || x.type.toLowerCase().includes(search.toLowerCase())));
-    } else {
-      setBlogPosts(defaultArr);
-    }
-  }, [search]);
-
   // analytics
   useEffect(() => {
     const isLocal = window.location.hostname === "localhost" ? true : false;
@@ -280,40 +272,87 @@ export default function Blog() {
     }
   }, []);
 
-  const handlePillButtonClick = button => {
+  useEffect(() => {
+    if (search !== '') {
+      setBlogPosts(blogPosts.filter(x => x.title.toLowerCase().includes(search.toLowerCase()) || x.type.toLowerCase().includes(search.toLowerCase())));
+    } else {
+      setBlogPosts(defaultArr);
+    }
+  }, [search]);
+
+  const handleSelectCategory = button => {
     const newFilterButtons = [...filterButtons];
     const index = newFilterButtons.indexOf(button);
     newFilterButtons[index].active = !newFilterButtons[index].active;
     setFilterButtons(newFilterButtons);
 
-    const arr = [];
+    const noFilter = filterButtons.every(x => x.active === false);
 
-    const filterActive = filterButtons.some(x => x.active === true);
-
-    if (filterActive) {
-      filterButtons.forEach(x => {
-        blogPosts.forEach(y => {
-          y.tags.forEach(tag => {
-            if (tag.name === x.name && x.active === true) {
-              console.log(y);
-              if (!arr.includes(y)) {
-                arr.push(y);
+    if (noFilter) {
+      setBlogPosts(defaultArr);
+    } else {
+      const arr = [];
+      filterButtons.forEach(category => {
+        if (category.active) {
+          blogPosts.forEach(post => {
+            return post.tags.forEach(tag => {
+              if (tag.name === category.name && !arr.includes(post)) {
+                console.log(post.navigate);
+                arr.push(post);
+                console.log(arr);
               }
-              console.log(arr);
-            } else if (tag.name === x.name && x.active === false) {
-              const index = arr.indexOf(x => x === y);
-              if (index !== -1) {
-                arr.splice(index, 1);
-              }
-            }
+            });
           });
-        });
+        } else if (!category.active) {
+          blogPosts.forEach(post => {
+            return post.tags.forEach(tag => {
+              if (tag.name === category.name) {
+                const index = arr.indexOf(post);
+                console.log(index);
+                if (index !== -1) {
+                  console.log(post.navigate);
+                  arr.splice(index, 1);
+                  console.log(arr);
+                }
+              }
+            });
+          });
+        }
       });
       setBlogPosts(arr);
-    } else {
-      setBlogPosts(defaultArr);
     }
-  };
+
+    //   if (noFilter) {
+    //     setBlogPosts(defaultArr);
+    //   } else {
+    //     const arr = [];
+    //     blogPosts.forEach(post => {
+    //       post.tags.forEach(tag => {
+    //         filterButtons.forEach(category => {
+    //           if (category.active) {
+    //             if (tag.name === category.name && !arr.includes(post)) {
+    //               console.log(post.navigate);
+    //               arr.push(post);
+    //               console.log(arr);
+    //             }
+    //           } else if (!category.active) {
+    //             if (arr.includes(post)) {
+    //               const index = arr.indexOf(post);
+    //               if (index !== -1) {
+    //                 console.log(post.navigate);
+    //                 arr.splice(index, 1);
+    //                 console.log(arr);
+    //               }
+    //             }
+    //           }
+    //         });
+    //       });
+    //     });
+    //     setBlogPosts(arr);
+    //   }
+    // }
+
+  }
 
   return (
     <>
@@ -329,7 +368,7 @@ export default function Blog() {
               key={key}
               colour={button.colour}
               active={button.active}
-              onClick={() => handlePillButtonClick(button)}
+              onClick={() => handleSelectCategory(button)}
             >
               {button.name}
             </StyledPillButton>
