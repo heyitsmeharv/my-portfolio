@@ -8,6 +8,7 @@ import { LanguageContext } from "../context/languageContext";
 // components
 import Introduction from "../components/Introduction/Introduction";
 import AboutMe from "../components/AboutMe/AboutMe";
+import GitHubActivityTracker from "../components/GithubTracker/GithubTracker";
 import ProfessionalExperience from "../components/ProfessionalExperience/ProfessionalExperience";
 import ContactMe from "../components/ContactMe/ContactMe";
 import Skills from "../components/Skills/Skills";
@@ -36,6 +37,7 @@ const Home = () => {
       <Skills language={language} />
       <Comments language={language} />
       {/* <LikeCounter /> */}
+      <GitHubActivityTracker language={language} />
     </Container >
   );
 };

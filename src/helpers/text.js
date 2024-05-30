@@ -275,3 +275,17 @@ export const submit = (language) => {
   }
   return text;
 }
+
+
+export const activityTracker = (language) => {
+  let text;
+  switch (language) {
+    case 'EN':
+      text = "What I'm up to"
+      break;
+    case 'ES':
+      text = "Lo que estoy haciendo";
+      break;
+  }
+  return text;
+}
