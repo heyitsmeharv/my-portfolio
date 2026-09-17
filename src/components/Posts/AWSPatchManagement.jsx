@@ -16,10 +16,7 @@ import {
   IconWrapper,
   HeaderIcon,
 } from "../BlogLayout/BlogLayout";
-import {
-  ProjectArchitecture,
-  EngineeringDecisions,
-} from "../BlogLayout/ProjectExplanation";
+import { EngineeringDecisions } from "../BlogLayout/ProjectExplanation";
 
 // typography
 import {
@@ -35,129 +32,65 @@ import {
 } from "../Typography/Typography";
 
 // icons
-import {
-  AWSSVG,
-  AWSSSMSVG,
-  AWSEC2SVG,
-  TerraformSVG,
-} from "../../resources/styles/icons";
+import { AWSSVG, AWSSSMSVG, AWSEC2SVG } from "../../resources/styles/icons";
 
 // components
 import BackButton from "../Button/BackButton";
 import Banner from "../Banner/Banner";
-import { CodeBlockWithCopy } from "../Code/Code";
-
-// code blocks
-import {
-  awsPatchManagementCLIPackageManager,
-  awsPatchManagementTerraformIAMRole,
-  awsPatchManagementTerraformVPCEndpoints,
-  awsPatchManagementTerraformBaseline,
-  awsPatchManagementTerraformPatchGroup,
-  awsPatchManagementTerraformMaintenanceWindow,
-  awsPatchManagementTerraformScanAssociation,
-  awsPatchManagementCLIComplianceStates,
-  awsPatchManagementTerraformInspector,
-  awsPatchManagementTerraformPrePatchTask,
-  awsPatchManagementTerraformPostPatchTask,
-  awsPatchManagementCLIEmergencyPatch,
-  awsPatchManagementTerraformImageBuilder,
-  awsPatchManagementTerraformImageBuilderIAM,
-  awsPatchManagementPackerTemplate,
-  awsPatchManagementCLIInstanceRefresh,
-  awsPatchManagementTerraformAlerting,
-  awsPatchManagementCLIComplianceReport,
-  awsPatchManagementTerraformDataSync,
-  awsPatchManagementTerraformModuleBasic,
-  awsPatchManagementTerraformModuleComplete,
-} from "../../helpers/codeblocks";
-
-const repoUrl =
-  "https://github.com/heyitsmeharv/terraform-aws-patch-management";
 
 const PostContainer = styled(BasePostContainer)`
   animation: ${SlideInBottom} 0.5s forwards;
 `;
 
-const ssmArchitecture = `[ec2] EC2 Fleet
-  [tag] PatchGroup Tag
-    [ssm] AWS Systems Manager
-      [agent] SSM Agent (outbound HTTPS)
-        [pm] Patch Manager
-          [baseline] Patch Baseline
-            (Security + Bugfix patches)
-            (approve_after_days: 7 dev | 14 prod)
-          [group] Patch Group
-            (tag → baseline mapping)
-          [scan] Scan Association (hourly)
-          [window] Maintenance Window
-            (dev Fri 22:00 UTC | stage Sat 01:00 | prod Sun 02:00)
-            [t0] Priority 0 - EBS Snapshot
-            [t1] Priority 1 - AWS-RunPatchBaseline (Install)
-            [t2] Priority 2 - Health Check (curl)
-        [compliance] Compliance Dashboard
-          [config] AWS Config rule
-          [hub] Security Hub (cross-account aggregation)
-      [inspector] Inspector v2
-        (continuous CVE scanning)
-        [eb1] EventBridge → SNS (Critical findings)
-  [imagebuilder] EC2 Image Builder
-    (weekly Sun 01:00 UTC - before prod window)
-    [recipe] Recipe = AL2023 base + patch component + hardening
-      [ami] Golden AMI (patches baked in)
-        [lt] Launch Template (new version)
-          [asg] Auto Scaling Group → instance refresh
-  [packer] Packer (alternative - GitHub Actions)
-    > same output: tagged AMI → Launch Template → ASG refresh`;
-
 const patchManagementDecisions = [
   {
-    title: "SSM Patch Manager vs Golden AMI vs both",
+    title: "In-place patching vs replacing the instance",
     body: `Stateful workloads - databases, bastion hosts, long-lived build agents - cannot
-be replaced without losing data or state. They need in-place patching via SSM Patch
-Manager. Stateless ASG workloads can be thrown away and replaced, making them ideal
-for the Golden AMI pattern. A mature setup uses both: SSM Patch Manager for anything
-that can't be replaced, EC2 Image Builder for everything that can. The module supports
-both patterns simultaneously.`,
+be replaced without losing data or state. They need in-place patching. Stateless workloads
+behind an Auto Scaling Group can be thrown away and rebuilt, making them a good fit for the
+"replace with a pre-patched image" approach instead. A mature setup usually runs both:
+in-place patching for anything that can't be replaced, image rebuilding for everything that
+can.`,
   },
   {
-    title: "The soak period length (7 days dev / 14 days prod)",
-    body: `Zero-day approval for Critical patches sounds security-conscious but introduces
-regression risk - a newly-released patch with a bug will reach production within hours.
-Thirty days is safe from regression but leaves an unacceptably long exposure window for
-actively-exploited CVEs. Seven days for dev and fourteen for prod, combined with staggered
-maintenance windows (Friday → Saturday → Sunday), gives an effective ~21-day soak from
-patch release to production. That's long enough to catch regressions in dev before they
-reach prod, without sitting on a Critical CVE for a month.`,
+    title: "How long to wait before auto-approving a patch",
+    body: `Approving Critical patches for install the moment they're released sounds
+security-conscious but introduces regression risk - a newly-released patch with a bug in it
+will reach production within hours. Waiting thirty days is safe from regression but leaves
+an unacceptably long exposure window for a CVE that's already being exploited. A soak period
+of one to two weeks, staggered across environments so dev sees a patch days before
+production does, gives you enough time to catch a regression before it reaches production
+without sitting on a Critical CVE for a month.`,
   },
   {
-    title: "RebootIfNeeded - never NoReboot",
-    body: `Setting RebootOption to NoReboot avoids unplanned reboots but creates
-InstalledPendingReboot compliance states: the patch is on disk, the dashboard shows
-"installed", but the old vulnerable binary is still running in memory. The fleet looks
-compliant while actually being exposed. RebootIfNeeded is the correct default - instances
-only reboot when the installed package actually requires it (kernel, glibc, and similar
-core libraries). Workloads that cannot tolerate automated reboots need a drain-and-reboot
-procedure, not NoReboot.`,
+    title: "Reboot on patch vs avoid rebooting",
+    body: `Skipping the reboot after a patch avoids disrupting a running instance, but it
+leaves the fleet in a false-compliance state: the patch is on disk, the dashboard shows it
+as "installed", yet the old vulnerable binary is still running in memory because the kernel
+or a core library like glibc only picks up a new version on boot. Rebooting only when the
+installed package actually requires it is the safer default. Workloads that cannot tolerate
+an automated reboot need an explicit drain-and-reboot procedure instead of silently skipping
+the reboot.`,
   },
   {
-    title: "EC2 Image Builder vs Packer",
-    body: `Both produce the same output: a tagged AMI in your account. Image Builder is
-fully managed inside AWS - no CI/CD pipeline dependency, built-in Inspector scanning as
-a pipeline gate, and a native schedule. Packer runs in your repository alongside
-application code - version-controlled, testable, and multi-cloud (the same template
-builds for Azure and GCP). Choose Image Builder if you want no external dependency.
-Choose Packer if you are already in the HashiCorp ecosystem or need multi-cloud builds.`,
+    title: "Building images inside your cloud provider vs in your own pipeline",
+    body: `Both approaches to building a pre-patched image produce the same output: a new,
+bootable image with current patches baked in. Building it with a provider-managed pipeline
+means no external CI/CD dependency and scanning gates that live natively alongside the
+build. Building it with a general-purpose image-building tool in your own repository means
+the build logic is version-controlled next to your application code, and - if the tool
+supports it - portable to other clouds. Choose the managed route if you want one fewer
+external dependency. Choose the pipeline route if you're already invested in that tooling
+or need the same build to target more than one cloud.`,
   },
   {
-    title: "Inspector v2 alongside SSM Patch Manager",
-    body: `Inspector is detection; Patch Manager is remediation. Running only one leaves
-a gap. Inspector without Patch Manager means you surface vulnerabilities but cannot
-automate fixing them. Patch Manager without Inspector means you are blind between
-maintenance windows - new CVEs published on Monday are unknown to you until Sunday's
-window scans the fleet. Both together close the loop: Inspector alerts within minutes
-of a new Critical CVE, and Patch Manager applies the fix on the next window or
-immediately via send-command for zero-tolerance severities.`,
+    title: "Scheduled scanning alongside scheduled patching",
+    body: `Scheduled patching alone leaves you blind between windows - a CVE published the
+day after a patch run is invisible until the next one fires. Continuous vulnerability
+scanning alone tells you what's wrong but doesn't fix anything on its own. Running both
+closes the loop: scanning surfaces a new Critical finding within minutes of publication,
+and an out-of-band patch path (rather than waiting for the next scheduled window) applies
+the fix immediately for anything severe enough to warrant it.`,
   },
 ];
 
@@ -187,24 +120,18 @@ const AWSPatchManagement = () => {
             <HeaderIcon>
               <AWSEC2SVG />
             </HeaderIcon>
-            <HeaderIcon>
-              <TerraformSVG />
-            </HeaderIcon>
           </IconWrapper>
         </HeaderRow>
 
         <Paragraph>
           By the end of this post you will understand how software
-          vulnerabilities are discovered, scored, and tracked; how AWS SSM Patch
-          Manager automates in-place patching across a fleet of EC2 instances;
-          how EC2 Image Builder bakes patches into pre-hardened AMIs before any
-          instance ever launches from them; and how to wire alerting, compliance
-          reporting, and multi-account visibility together into a complete
-          system. Here is a deployable{" "}
-          <TextLink href={repoUrl} target="_blank" rel="noreferrer">
-            Terraform module on GitHub
-          </TextLink>{" "}
-          demonstrating the concepts in this post:
+          vulnerabilities are discovered, scored, and tracked; the two
+          fundamentally different approaches to keeping a fleet of instances
+          patched; how AWS Systems Manager automates in-place patching; how
+          pre-patched images remove the need to patch running instances at all;
+          and how alerting, compliance reporting, and multi-account visibility
+          fit into a complete system. This post covers the theory and the
+          decisions involved - not a ready-made module.
         </Paragraph>
 
         <TextList>
@@ -215,11 +142,12 @@ const AWSPatchManagement = () => {
             How SSM Patch Manager automates in-place patching on a schedule
           </TextListItem>
           <TextListItem>
-            How EC2 Image Builder bakes patches into pre-hardened Golden AMIs
+            How pre-patched Golden AMIs remove the need to patch running
+            instances
           </TextListItem>
           <TextListItem>
             How to detect new vulnerabilities between patch windows with
-            Inspector v2
+            continuous scanning
           </TextListItem>
           <TextListItem>
             How to alert on failures and report compliance to auditors
@@ -285,11 +213,8 @@ const AWSPatchManagement = () => {
           <InlineHighlight>dnf update --security</InlineHighlight> applies only
           packages where the update is classified as a security fix. The OS
           tracks what's installed, what's available, and which security
-          advisories apply to each package. The commands below show these
-          mechanics directly:
+          advisories apply to each package.
         </Paragraph>
-
-        <CodeBlockWithCopy code={awsPatchManagementCLIPackageManager} />
 
         <Paragraph>
           Some patches require a reboot and some do not. When you update a
@@ -350,10 +275,10 @@ const AWSPatchManagement = () => {
           like SOC 2 (Service Organisation Control - an auditing standard for
           data security) and ISO 27001 (an international standard for
           information security management): Critical within 15 days, High within
-          30 days, Medium within 90 days, Low within 365 days. The soak period
-          and maintenance window schedule in this module are designed to meet
-          these timelines for Critical and High severity patches while still
-          allowing regressions to surface in dev before they reach production.
+          30 days, Medium within 90 days, Low within 365 days. A soak period and
+          maintenance window schedule should be designed to meet these timelines
+          for Critical and High severity patches while still allowing
+          regressions to surface in dev before they reach production.
         </Paragraph>
 
         <Banner title="Soak Period" variant="info">
@@ -510,8 +435,8 @@ const AWSPatchManagement = () => {
           <Paragraph>
             Use SSM Patch Manager for your long-lived stateful instances. Use
             Golden AMIs built with EC2 Image Builder for your autoscaling
-            application tier. Both are covered in this post. The Terraform
-            module supports both simultaneously.
+            application tier. Both are covered in this post, and a mature setup
+            runs them side by side.
           </Paragraph>
         </Banner>
 
@@ -577,8 +502,6 @@ const AWSPatchManagement = () => {
           policy instead.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementTerraformIAMRole} />
-
         <Paragraph>
           Once the agent is running with the right IAM and network access, the
           instance appears in the SSM Fleet Manager console. The agent polls for
@@ -615,8 +538,6 @@ const AWSPatchManagement = () => {
             internet entirely.
           </Paragraph>
         </Banner>
-
-        <CodeBlockWithCopy code={awsPatchManagementTerraformVPCEndpoints} />
 
         <SectionHeading>Patch Baselines (The Rulebook)</SectionHeading>
 
@@ -668,15 +589,14 @@ const AWSPatchManagement = () => {
         </Paragraph>
 
         <Paragraph>
-          The module uses a single baseline per environment with{" "}
-          <InlineHighlight>approve_after_days</InlineHighlight> driven by the
-          environment name: seven days for dev and stage, fourteen days for
-          prod. Combined with staggered maintenance windows (Friday dev,
-          Saturday stage, Sunday prod), this creates an effective ~21-day soak
-          from patch release to production.
+          A common pattern is one baseline per environment, with{" "}
+          <InlineHighlight>approve_after_days</InlineHighlight> shorter in dev
+          and longer in prod - for example, seven days for dev and fourteen for
+          prod. Combined with staggered maintenance windows across environments,
+          this creates an effective multi-week soak from patch release to
+          production, giving regressions time to surface in dev before they
+          reach the fleet that matters most.
         </Paragraph>
-
-        <CodeBlockWithCopy code={awsPatchManagementTerraformBaseline} />
 
         <SubSectionHeading>
           Scan vs Install - How the Dashboard Stays Current
@@ -694,9 +614,6 @@ const AWSPatchManagement = () => {
           dashboard reflects your current state within the hour.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementTerraformScanAssociation} />
-
-        {/* ── Section 9 - Patch Groups ──────────────────────────────────────── */}
         <SectionHeading>
           Patch Groups (Targeting the Right Instances)
         </SectionHeading>
@@ -708,9 +625,9 @@ const AWSPatchManagement = () => {
           The group name is then registered against a specific baseline - so
           instances tagged{" "}
           <InlineHighlight>PatchGroup = my-app-prod</InlineHighlight> use the
-          prod baseline with its 14-day soak, while instances tagged{" "}
+          prod baseline with its longer soak, while instances tagged{" "}
           <InlineHighlight>PatchGroup = my-app-dev</InlineHighlight> use the dev
-          baseline with its 7-day soak.
+          baseline with its shorter one.
         </Paragraph>
 
         <Paragraph>
@@ -734,9 +651,6 @@ const AWSPatchManagement = () => {
           Terraform resource that creates the link.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementTerraformPatchGroup} />
-
-        {/* ── Section 10 - Maintenance Windows ─────────────────────────────── */}
         <SectionHeading>
           Maintenance Windows (Scheduling Patches)
         </SectionHeading>
@@ -785,8 +699,8 @@ const AWSPatchManagement = () => {
 
         <Paragraph>
           A maintenance window can contain multiple tasks with integer
-          priorities. SSM executes them lowest-first. This module uses three:
-          priority 0 (EBS snapshot before patching), priority 1 (install
+          priorities. SSM executes them lowest-first. A typical setup uses
+          three: priority 0 (EBS snapshot before patching), priority 1 (install
           patches), priority 2 (post-patch health check). If the snapshot task
           fails, the patch task does not start.{" "}
           <InlineHighlight>max_concurrency = "50%"</InlineHighlight> patches at
@@ -797,20 +711,16 @@ const AWSPatchManagement = () => {
         </Paragraph>
 
         <Paragraph>
-          The module defaults to Friday 22:00 for dev, Saturday 01:00 for stage,
-          and Sunday 02:00 for prod (all UTC). A regression caught in dev on
+          Staggering windows across environments - dev on Friday, stage on
+          Saturday, prod on Sunday, for example - gives a regression time to
+          surface before it reaches production. A regression caught in dev on
           Friday gives you Friday night and Saturday to investigate before stage
           patches. A regression in stage on Saturday gives you Saturday night
-          before prod patches on Sunday. Sunday 02:00 for prod is the
-          lowest-traffic window for most workloads, with the rest of Sunday to
-          monitor before the working week starts.
+          before prod patches on Sunday. Picking prod's window during its
+          lowest-traffic period, with the rest of the weekend to monitor before
+          the working week starts, is a common choice.
         </Paragraph>
 
-        <CodeBlockWithCopy
-          code={awsPatchManagementTerraformMaintenanceWindow}
-        />
-
-        {/* ── Section 11 - Compliance States ───────────────────────────────── */}
         <SectionHeading>
           Patch Compliance States (Reading the Dashboard)
         </SectionHeading>
@@ -878,9 +788,6 @@ const AWSPatchManagement = () => {
           </Paragraph>
         </Banner>
 
-        <CodeBlockWithCopy code={awsPatchManagementCLIComplianceStates} />
-
-        {/* ── Section 12 - Inspector v2 ─────────────────────────────────────── */}
         <SectionHeading>
           AWS Inspector v2 (Continuous Vulnerability Detection)
         </SectionHeading>
@@ -919,9 +826,6 @@ const AWSPatchManagement = () => {
           you want this firing within minutes, not waiting for a weekly report.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementTerraformInspector} />
-
-        {/* ── Section 13 - Testing and Staging ─────────────────────────────── */}
         <SectionHeading>
           Testing and Staging (The Patch Pipeline)
         </SectionHeading>
@@ -937,43 +841,35 @@ const AWSPatchManagement = () => {
         </Paragraph>
 
         <Paragraph>
-          The staggered <InlineHighlight>approve_after_days</InlineHighlight> in
-          the baselines (seven days for dev, fourteen for prod) combined with
-          the staggered maintenance windows (Friday dev, Saturday stage, Sunday
-          prod) means: a patch released on Monday is approved for dev seven days
-          later. The dev window fires on Friday night. Stage approves fourteen
-          days from release, with its window firing the Saturday after dev
-          patched. Prod approves fourteen days from release, with its window
-          firing Sunday - one day after stage. The effective soak from release
-          to prod is approximately 21 days.
+          Staggering the soak period and the maintenance windows together
+          compounds the delay in a useful way. Take a seven-day dev soak and a
+          fourteen-day prod soak, combined with windows firing dev on Friday,
+          stage on Saturday, and prod on Sunday: a patch released on Monday is
+          approved for dev seven days later, and the dev window installs it that
+          Friday night. Prod, approved fourteen days from release, installs it
+          the following Sunday - one day after stage. The effective soak from
+          release to prod works out to roughly three weeks.
         </Paragraph>
 
         <Paragraph>
-          The priority 0 task in the maintenance window creates an EBS snapshot
-          of each instance's volumes before patching starts. For stateful
-          workloads on the mutable path - databases, build agents - the EBS
-          snapshot is the rollback path: restore the snapshot if a patch breaks
-          something. For stateless ASG instances on the immutable path (Golden
-          AMI), individual pre-patch snapshots are less critical - rollback
-          means reverting to the previous Launch Template version and triggering
-          a fresh instance refresh. Set{" "}
-          <InlineHighlight>pre_patch_snapshot = false</InlineHighlight> for
-          stateless ASG fleets.
+          A pre-patch task that snapshots each instance's volumes before
+          patching starts gives you a rollback path. For stateful workloads on
+          the mutable path - databases, build agents - restoring that snapshot
+          is how you recover if a patch breaks something. For stateless
+          instances on the immutable path (Golden AMI), individual pre-patch
+          snapshots matter less - rollback means reverting to the previous
+          Launch Template version and triggering a fresh instance refresh
+          instead.
         </Paragraph>
-
-        <CodeBlockWithCopy code={awsPatchManagementTerraformPrePatchTask} />
 
         <Paragraph>
-          The priority 2 task runs a shell script on each instance after
-          patching. The script curls the application's health check endpoint and
-          asserts HTTP 200. If the health check fails, the instance fails the
-          task. If enough instances fail to breach{" "}
-          <InlineHighlight>max_errors</InlineHighlight>, the maintenance window
-          execution is marked Failed - a clear automated signal without manually
-          checking each instance.
+          A post-patch task that runs after installation - curling the
+          application's health check endpoint and asserting a healthy response,
+          for example - gives you a clear automated signal without manually
+          checking each instance. If enough instances fail that check to breach
+          the window's error threshold, the maintenance window execution is
+          marked Failed.
         </Paragraph>
-
-        <CodeBlockWithCopy code={awsPatchManagementTerraformPostPatchTask} />
 
         <Banner
           title="Canary patching for significant baseline changes"
@@ -989,7 +885,6 @@ const AWSPatchManagement = () => {
           </Paragraph>
         </Banner>
 
-        {/* ── Section 14 - Emergency Patching ──────────────────────────────── */}
         <SectionHeading>
           Emergency Patching (When You Can't Wait for Sunday)
         </SectionHeading>
@@ -1023,9 +918,6 @@ const AWSPatchManagement = () => {
           emergency window with the CVE ID and timestamp for audit evidence.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementCLIEmergencyPatch} />
-
-        {/* ── Section 15 - What is an AMI? ─────────────────────────────────── */}
         <SectionHeading>What is an AMI?</SectionHeading>
 
         <Paragraph>
@@ -1052,7 +944,6 @@ const AWSPatchManagement = () => {
           patched AMI).
         </Paragraph>
 
-        {/* ── Section 16 - The Golden AMI Pattern ──────────────────────────── */}
         <SectionHeading>The Golden AMI Pattern</SectionHeading>
 
         <Paragraph>
@@ -1086,7 +977,6 @@ const AWSPatchManagement = () => {
           storage.
         </Paragraph>
 
-        {/* ── Section 17 - EC2 Image Builder ───────────────────────────────── */}
         <SectionHeading>
           EC2 Image Builder (The AWS-Native Approach)
         </SectionHeading>
@@ -1146,10 +1036,6 @@ const AWSPatchManagement = () => {
           on the pipeline resource.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementTerraformImageBuilder} />
-
-        <CodeBlockWithCopy code={awsPatchManagementTerraformImageBuilderIAM} />
-
         <SubSectionHeading>
           Closing the Loop - AMI to Launch Template
         </SubSectionHeading>
@@ -1172,11 +1058,10 @@ const AWSPatchManagement = () => {
             aws autoscaling start-instance-refresh
           </InlineHighlight>
           . For simpler environments, this step can be done manually by an
-          operator after each build. The Packer section below shows the same
-          chain automated via GitHub Actions.
+          operator after each build, or automated via a CI/CD pipeline instead
+          of an EventBridge-triggered Lambda.
         </Paragraph>
 
-        {/* ── Section 18 - Packer ──────────────────────────────────────────── */}
         <SectionHeading>Packer (The HashiCorp Alternative)</SectionHeading>
 
         <Paragraph>
@@ -1214,8 +1099,6 @@ const AWSPatchManagement = () => {
           Launch Template.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementPackerTemplate} />
-
         <Banner
           title="Image Builder and Packer produce the same output"
           variant="info"
@@ -1230,7 +1113,6 @@ const AWSPatchManagement = () => {
           </Paragraph>
         </Banner>
 
-        {/* ── Section 19 - ASG Instance Refresh ────────────────────────────── */}
         <SectionHeading>
           ASG Instance Refresh (Rolling Instances to a New AMI)
         </SectionHeading>
@@ -1258,9 +1140,6 @@ const AWSPatchManagement = () => {
           here the focus is on how it integrates with the AMI rotation workflow.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementCLIInstanceRefresh} />
-
-        {/* ── Section 20 - Alerting ─────────────────────────────────────────── */}
         <SectionHeading>
           Alerting (Know When Something Goes Wrong)
         </SectionHeading>
@@ -1288,9 +1167,6 @@ const AWSPatchManagement = () => {
           shared SNS topic.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementTerraformAlerting} />
-
-        {/* ── Section 21 - Compliance Reporting ────────────────────────────── */}
         <SectionHeading>
           Compliance Reporting (Proving You're Patched)
         </SectionHeading>
@@ -1332,9 +1208,6 @@ const AWSPatchManagement = () => {
           alerts for a single view across your account.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementCLIComplianceReport} />
-
-        {/* ── Section 22 - Scaling to Multiple Accounts ────────────────────── */}
         <SectionHeading>Scaling to Multiple Accounts</SectionHeading>
 
         <Paragraph>
@@ -1372,85 +1245,11 @@ const AWSPatchManagement = () => {
           query it across all accounts.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsPatchManagementTerraformDataSync} />
-
-        {/* ── Section 23 - Terraform Module Walkthrough ────────────────────── */}
-        <SectionHeading>Terraform Module Walkthrough</SectionHeading>
-
-        <Paragraph>
-          The{" "}
-          <TextLink href={repoUrl} target="_blank" rel="noreferrer">
-            terraform-aws-patch-management
-          </TextLink>{" "}
-          repository contains a reusable module under{" "}
-          <InlineHighlight>infra/modules/patch-management/</InlineHighlight>{" "}
-          with the following files:
-        </Paragraph>
-
-        <TextList>
-          <TextListItem>
-            <InlineHighlight>main.tf</InlineHighlight> - patch baseline and
-            patch group with per-environment soak periods
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>maintenance.tf</InlineHighlight> - maintenance
-            window, targets, all three task priorities, hourly scan association,
-            S3 bucket for command output, CloudWatch log group
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>iam.tf</InlineHighlight> - SSM instance role,
-            maintenance window service role, and Image Builder role
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>image_builder.tf</InlineHighlight> - full Image
-            Builder pipeline (conditional on{" "}
-            <InlineHighlight>enable_image_builder</InlineHighlight>)
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>inspector.tf</InlineHighlight> - Inspector v2
-            enablement and EventBridge rule for Critical findings (conditional)
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>alerting.tf</InlineHighlight> - shared SNS topic
-            and EventBridge rules for window and pipeline failures
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>variables.tf</InlineHighlight> and{" "}
-            <InlineHighlight>outputs.tf</InlineHighlight> - full variable
-            surface and all module outputs
-          </TextListItem>
-        </TextList>
-
-        <Paragraph>
-          Terraform fundamentals are covered in the{" "}
-          <TextLink href="/blog/infrastructure-as-code-with-terraform">
-            IaC with Terraform post
-          </TextLink>
-          .
-        </Paragraph>
-
-        <SubSectionHeading>Basic Usage</SubSectionHeading>
-
-        <CodeBlockWithCopy code={awsPatchManagementTerraformModuleBasic} />
-
-        <SubSectionHeading>Complete Usage</SubSectionHeading>
-
-        <CodeBlockWithCopy code={awsPatchManagementTerraformModuleComplete} />
-
-        {/* ── Section 24 - Architecture at a Glance ────────────────────────── */}
-        <ProjectArchitecture
-          archOutline={ssmArchitecture}
-          type="tree"
-          summary="The full patch management system: SSM Patch Manager handles in-place patching for stateful workloads; EC2 Image Builder (or Packer) builds pre-patched Golden AMIs for stateless ASG fleets; Inspector provides continuous detection between windows; EventBridge routes failures and Critical findings to SNS."
-        />
-
-        {/* ── Section 25 - Engineering Decisions ───────────────────────────── */}
         <EngineeringDecisions
           title="Engineering Decisions"
           decisions={patchManagementDecisions}
         />
 
-        {/* ── Section 26 - Wrapping Up ──────────────────────────────────────── */}
         <SectionHeading>Wrapping Up</SectionHeading>
 
         <Paragraph>
@@ -1459,13 +1258,12 @@ const AWSPatchManagement = () => {
           across a fleet, in multiple accounts, with compliance evidence, and
           without taking production offline. This post has covered everything
           from what a package version number actually means through to
-          multi-account patch policy rollout. The{" "}
-          <TextLink href={repoUrl} target="_blank" rel="noreferrer">
-            Terraform module
-          </TextLink>{" "}
-          gives you a deployable starting point that handles both the mutable
-          and immutable patching paths, alerting, and compliance reporting out
-          of the box.
+          multi-account patch policy rollout: the two fundamentally different
+          approaches to keeping a fleet patched, the AWS services that automate
+          each one, and the tradeoffs between them. Which approach fits which
+          workload, and how tightly to schedule the soak period, is a decision
+          only you can make for your own fleet - but the theory here should give
+          you what you need to make it.
         </Paragraph>
       </PostContainer>
     </PageWrapper>

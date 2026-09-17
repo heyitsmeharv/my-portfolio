@@ -773,8 +773,8 @@ export default function Blog() {
       },
       {
         title: "GitHub CI/CD",
-        readingTime: "approx 10 mins",
-        type: "Practical",
+        readingTime: "approx 5 mins",
+        type: "Theory",
         date: "10/12/2025",
         tags: [
           { name: "DevOps" },
@@ -876,49 +876,25 @@ export default function Blog() {
         navigate: "building-your-own-analytics",
         published: true,
       },
-      {
-        title: "AWS Observability Dashboard",
-        readingTime: "approx 12 mins",
-        type: "Practical",
-        date: "17/04/2026",
-        tags: [
-          { name: "DevOps" },
-          { name: "Terraform", background: "#7B42BC", icon: <TerraformSVG /> },
-          {
-            name: "AWS",
-            background: "#FF9900",
-            icon: <AWSWhiteBackgroundSVG />,
-          },
-          {
-            name: "CloudWatch",
-            background: "#FF9900",
-            icon: <AWSCloudWatchSVG />,
-          },
-        ],
-        intro: `Every time I've onboarded a service at work without existing observability I've had to rebuild the same thing: a CloudWatch dashboard, a handful of alarms, a set of Logs Insights queries. It takes a day, 
-        it looks slightly different every time, and the next person to own the service has to reverse-engineer what the alarms actually mean...`,
-        navigate: "aws-observability-dashboard",
-        published: true,
-      },
-      {
-        title: "AWS Security Scorecard CLI",
-        readingTime: "approx 12 mins",
-        type: "Practical",
-        date: "19/04/2026",
-        tags: [
-          {
-            name: "AWS",
-            background: "#FF9900",
-            icon: <AWSWhiteBackgroundSVG />,
-          },
-          { name: "IAM", background: "#FF9900", icon: <AWSIAMSVG /> },
-          { name: "Bash", background: "#2d3436", icon: <BashSVG /> },
-        ],
-        intro: `I've written a lot of theory posts about AWS security services - IAM, KMS, CloudTrail, VPC, Secrets Manager. I covered how they work, what the controls are, why they matter. I used this project as an excuse to
-        see if I could build something useful which encapsulates the above...`,
-        navigate: "aws-sec-audit",
-        published: true,
-      },
+      // {
+      //   title: "AWS Security Scorecard CLI",
+      //   readingTime: "approx 12 mins",
+      //   type: "Practical",
+      //   date: "19/04/2026",
+      //   tags: [
+      //     {
+      //       name: "AWS",
+      //       background: "#FF9900",
+      //       icon: <AWSWhiteBackgroundSVG />,
+      //     },
+      //     { name: "IAM", background: "#FF9900", icon: <AWSIAMSVG /> },
+      //     { name: "Bash", background: "#2d3436", icon: <BashSVG /> },
+      //   ],
+      //   intro: `I've written a lot of theory posts about AWS security services - IAM, KMS, CloudTrail, VPC, Secrets Manager. I covered how they work, what the controls are, why they matter. I used this project as an excuse to
+      //   see if I could build something useful which encapsulates the above...`,
+      //   navigate: "aws-sec-audit",
+      //   published: true,
+      // },
       {
         title: "When Output Outruns Understanding",
         readingTime: "approx 8 mins",
@@ -998,7 +974,7 @@ export default function Blog() {
       },
       {
         title: "AWS Patch Management",
-        readingTime: "approx 45 minutes",
+        readingTime: "approx 30 minutes",
         type: "Theory",
         date: "15/06/2026",
         tags: [
@@ -1496,8 +1472,8 @@ export default function Blog() {
     },
     {
       title: "GitHub CI/CD",
-      readingTime: "approx 10 mins",
-      type: "Practical",
+      readingTime: "approx 5 mins",
+      type: "Theory",
       date: "10/12/2025",
       tags: [
         { name: "DevOps" },
@@ -1587,41 +1563,21 @@ export default function Blog() {
       navigate: "building-your-own-analytics",
       published: true,
     },
-    {
-      title: "AWS Observability Dashboard",
-      readingTime: "approx 12 mins",
-      type: "Practical",
-      date: "17/04/2026",
-      tags: [
-        { name: "DevOps" },
-        { name: "Terraform", background: "#7B42BC", icon: <TerraformSVG /> },
-        { name: "AWS", background: "#FF9900", icon: <AWSWhiteBackgroundSVG /> },
-        {
-          name: "CloudWatch",
-          background: "#FF9900",
-          icon: <AWSCloudWatchSVG />,
-        },
-      ],
-      intro: `Every time I've onboarded a service at work without existing observability I've had to rebuild the same thing: a CloudWatch dashboard, a handful of alarms, a set of Logs Insights queries. It takes a day, 
-      it looks slightly different every time, and the next person to own the service has to reverse-engineer what the alarms actually mean...`,
-      navigate: "aws-observability-dashboard",
-      published: true,
-    },
-    {
-      title: "AWS Security Scorecard CLI",
-      readingTime: "approx 12 mins",
-      type: "Practical",
-      date: "19/04/2026",
-      tags: [
-        { name: "AWS", background: "#FF9900", icon: <AWSWhiteBackgroundSVG /> },
-        { name: "IAM", background: "#FF9900", icon: <AWSIAMSVG /> },
-        { name: "Bash", background: "#2d3436", icon: <BashSVG /> },
-      ],
-      intro: `I've written a lot of theory posts about AWS security services - IAM, KMS, CloudTrail, VPC, Secrets Manager. I covered how they work, what the controls are, why they matter. I used this project as an excuse to
-      see if I could build something useful which encapsulates the above...`,
-      navigate: "aws-sec-audit",
-      published: true,
-    },
+    // {
+    //   title: "AWS Security Scorecard CLI",
+    //   readingTime: "approx 12 mins",
+    //   type: "Practical",
+    //   date: "19/04/2026",
+    //   tags: [
+    //     { name: "AWS", background: "#FF9900", icon: <AWSWhiteBackgroundSVG /> },
+    //     { name: "IAM", background: "#FF9900", icon: <AWSIAMSVG /> },
+    //     { name: "Bash", background: "#2d3436", icon: <BashSVG /> },
+    //   ],
+    //   intro: `I've written a lot of theory posts about AWS security services - IAM, KMS, CloudTrail, VPC, Secrets Manager. I covered how they work, what the controls are, why they matter. I used this project as an excuse to
+    //   see if I could build something useful which encapsulates the above...`,
+    //   navigate: "aws-sec-audit",
+    //   published: true,
+    // },
     {
       title: "When Output Outruns Understanding",
       readingTime: "approx 8 mins",
@@ -1685,7 +1641,7 @@ export default function Blog() {
     },
     {
       title: "AWS Patch Management",
-      readingTime: "approx 45 minutes",
+      readingTime: "approx 30 minutes",
       type: "Theory",
       date: "15/06/2026",
       tags: [

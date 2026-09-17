@@ -22,26 +22,16 @@ export const projects = [
     link: "https://mytightfive.co.uk",
     tags: ["AWS", "Terraform", "React", "Node.js"],
   },
-  {
-    name: "AWS Security Scorecard CLI",
-    description: {
-      EN: "A Node.js CLI that audits an AWS account against 26 CIS Foundations Benchmark v2.0 controls across IAM, S3, CloudTrail, KMS, VPC, and Secrets Manager. Grades the account A–F with weighted severity scoring, applies safe auto-remediations via --fix, and exits with code 2 on a failing grade for CI integration.",
-      ES: "Una CLI de Node.js que audita una cuenta de AWS contra 26 controles del CIS Foundations Benchmark v2.0 en IAM, S3, CloudTrail, KMS, VPC y Secrets Manager. Califica la cuenta de A a F con puntuación ponderada por severidad, aplica correcciones automáticas seguras con --fix y sale con código 2 ante una calificación reprobatoria para integración en CI.",
-    },
-    image: AWSSecAudit,
-    github: "https://github.com/heyitsmeharv/aws-sec-audit",
-    tags: ["AWS", "Node.js", "npm"],
-  },
-  {
-    name: "AWS Observability Dashboard",
-    description: {
-      EN: "A composable Terraform module set for CloudWatch observability. Modules for alarms, Synthetics canaries, dashboards, and Logs Insights queries wire together via ARN inputs - drop it onto any existing stack without restructuring it.",
-      ES: "Un conjunto de módulos Terraform componibles para la observabilidad con CloudWatch. Módulos para alarmas, canarios de Synthetics, dashboards y consultas de Logs Insights se conectan mediante entradas de ARN - se puede agregar a cualquier stack existente sin reestructurarlo.",
-    },
-    image: ObservabilityDashboard,
-    github: "https://github.com/heyitsmeharv/aws-observability-dashboard",
-    tags: ["AWS", "Terraform"],
-  },
+  // {
+  //   name: "AWS Security Scorecard CLI",
+  //   description: {
+  //     EN: "A Node.js CLI that audits an AWS account against 26 CIS Foundations Benchmark v2.0 controls across IAM, S3, CloudTrail, KMS, VPC, and Secrets Manager. Grades the account A–F with weighted severity scoring, applies safe auto-remediations via --fix, and exits with code 2 on a failing grade for CI integration.",
+  //     ES: "Una CLI de Node.js que audita una cuenta de AWS contra 26 controles del CIS Foundations Benchmark v2.0 en IAM, S3, CloudTrail, KMS, VPC y Secrets Manager. Califica la cuenta de A a F con puntuación ponderada por severidad, aplica correcciones automáticas seguras con --fix y sale con código 2 ante una calificación reprobatoria para integración en CI.",
+  //   },
+  //   image: AWSSecAudit,
+  //   github: "https://github.com/heyitsmeharv/aws-sec-audit",
+  //   tags: ["AWS", "Node.js", "npm"],
+  // },
   {
     name: "quiet-ly Analytics",
     description: {
