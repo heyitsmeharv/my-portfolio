@@ -15,8 +15,8 @@ import {
   HeaderRow,
   IconWrapper,
   HeaderIcon,
+  PostImage,
 } from "../BlogLayout/BlogLayout";
-import { EngineeringDecisions } from "../BlogLayout/ProjectExplanation";
 
 // typography
 import {
@@ -38,61 +38,39 @@ import { AWSSVG, AWSSSMSVG, AWSEC2SVG } from "../../resources/styles/icons";
 import BackButton from "../Button/BackButton";
 import Banner from "../Banner/Banner";
 
+// screenshots
+import Tags from "../../resources/images/blog/AWSPatchManagement/aws_patch_mangement_tags.jpeg";
+import PatchGroups from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_groups.jpeg";
+import BaselineId from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_baselineid.jpeg";
+import MaintenanceWindows from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_mw.jpeg";
+import MaintenanceWindowDescription from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_mw_description.jpeg";
+import MaintenanceWindowTargets from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_mw_targets.jpeg";
+import MaintenanceWindowEditTargets from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_mw_edit_targets.jpeg";
+import MaintenanceWindowHistory from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_mw_history.jpeg";
+import AutomationExecutionsList from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_automation.jpeg";
+import AutomationExecutionDetail from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_automation_executions.jpeg";
+import AutomationDocuments from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_documents.jpeg";
+import AutomationDocumentGraph from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_document_name.jpeg";
+import ChangeCalendar from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_change_calendar.jpeg";
+import ChangeCalendarCreateEvent from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_change_calendar_create_event.jpeg";
+import ChangeCalendarCreateEventDetail from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_change_calendar_create_event2.jpeg";
+import ChangeCalendarGateBehaviour from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_change_calendar_gate_behaviour.jpeg";
+import StateManagerAssociations from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_state_manager_associations.jpeg";
+import Notifications from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_notifications.jpeg";
+import EmailConfirmation from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_email_confirmation.jpeg";
+import PatchManagerDashboard from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_patch_manager.jpeg";
+import PatchManagerComplianceSummary from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_patch_manager_compliance.jpeg";
+import ComplianceReporting from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_compliance_reporting.jpeg";
+import ComplianceReportExport from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_compliance_reporting_report.jpeg";
+import ResourceDataSyncSetting from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_resource_data_sync.jpeg";
+import ResourceDataSyncDetail from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_resource_data_sync2.jpeg";
+import InventoryDashboard from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_inventory_dashboard.jpeg";
+import InventoryDetailedView from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_inventory_detailed_view.jpeg";
+import FleetManager from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_fleet_manager.jpeg";
+
 const PostContainer = styled(BasePostContainer)`
   animation: ${SlideInBottom} 0.5s forwards;
 `;
-
-const patchManagementDecisions = [
-  {
-    title: "In-place patching vs replacing the instance",
-    body: `Stateful workloads - databases, bastion hosts, long-lived build agents - cannot
-be replaced without losing data or state. They need in-place patching. Stateless workloads
-behind an Auto Scaling Group can be thrown away and rebuilt, making them a good fit for the
-"replace with a pre-patched image" approach instead. A mature setup usually runs both:
-in-place patching for anything that can't be replaced, image rebuilding for everything that
-can.`,
-  },
-  {
-    title: "How long to wait before auto-approving a patch",
-    body: `Approving Critical patches for install the moment they're released sounds
-security-conscious but introduces regression risk - a newly-released patch with a bug in it
-will reach production within hours. Waiting thirty days is safe from regression but leaves
-an unacceptably long exposure window for a CVE that's already being exploited. A soak period
-of one to two weeks, staggered across environments so dev sees a patch days before
-production does, gives you enough time to catch a regression before it reaches production
-without sitting on a Critical CVE for a month.`,
-  },
-  {
-    title: "Reboot on patch vs avoid rebooting",
-    body: `Skipping the reboot after a patch avoids disrupting a running instance, but it
-leaves the fleet in a false-compliance state: the patch is on disk, the dashboard shows it
-as "installed", yet the old vulnerable binary is still running in memory because the kernel
-or a core library like glibc only picks up a new version on boot. Rebooting only when the
-installed package actually requires it is the safer default. Workloads that cannot tolerate
-an automated reboot need an explicit drain-and-reboot procedure instead of silently skipping
-the reboot.`,
-  },
-  {
-    title: "Building images inside your cloud provider vs in your own pipeline",
-    body: `Both approaches to building a pre-patched image produce the same output: a new,
-bootable image with current patches baked in. Building it with a provider-managed pipeline
-means no external CI/CD dependency and scanning gates that live natively alongside the
-build. Building it with a general-purpose image-building tool in your own repository means
-the build logic is version-controlled next to your application code, and - if the tool
-supports it - portable to other clouds. Choose the managed route if you want one fewer
-external dependency. Choose the pipeline route if you're already invested in that tooling
-or need the same build to target more than one cloud.`,
-  },
-  {
-    title: "Scheduled scanning alongside scheduled patching",
-    body: `Scheduled patching alone leaves you blind between windows - a CVE published the
-day after a patch run is invisible until the next one fires. Continuous vulnerability
-scanning alone tells you what's wrong but doesn't fix anything on its own. Running both
-closes the loop: scanning surfaces a new Critical finding within minutes of publication,
-and an out-of-band patch path (rather than waiting for the next scheduled window) applies
-the fix immediately for anything severe enough to warrant it.`,
-  },
-];
 
 const AWSPatchManagement = () => {
   useEffect(() => {
@@ -124,123 +102,29 @@ const AWSPatchManagement = () => {
         </HeaderRow>
 
         <Paragraph>
-          By the end of this post you will understand how software
-          vulnerabilities are discovered, scored, and tracked; the two
-          fundamentally different approaches to keeping a fleet of instances
-          patched; how AWS Systems Manager automates in-place patching; how
-          pre-patched images remove the need to patch running instances at all;
-          and how alerting, compliance reporting, and multi-account visibility
-          fit into a complete system. This post covers the theory and the
-          decisions involved - not a ready-made module.
-        </Paragraph>
-
-        <TextList>
-          <TextListItem>
-            How vulnerabilities are discovered, scored (CVSS), and tracked (CVE)
-          </TextListItem>
-          <TextListItem>
-            How SSM Patch Manager automates in-place patching on a schedule
-          </TextListItem>
-          <TextListItem>
-            How pre-patched Golden AMIs remove the need to patch running
-            instances
-          </TextListItem>
-          <TextListItem>
-            How to detect new vulnerabilities between patch windows with
-            continuous scanning
-          </TextListItem>
-          <TextListItem>
-            How to alert on failures and report compliance to auditors
-          </TextListItem>
-        </TextList>
-
-        <SectionHeading>
-          Why Patch Management is an Operational Problem
-        </SectionHeading>
-
-        <Paragraph>
-          Patching the operating system and software running <Strong>on</Strong>
-          instances is your responsibility. Without a patch management system in
-          place, you are exposed and vulnerable to security threats.
-        </Paragraph>
-
-        <Paragraph>
-          This is something that comes with the territory when running EC2
-          instances. If you use AWS Fargate (the serverless container runtime
-          behind ECS and EKS), AWS patches the underlying compute for you. But
-          the moment you run your own EC2 instances - whether directly or as ECS
-          or EKS worker nodes - patching the OS on those instances is your
-          responsibility.
-        </Paragraph>
-
-        <Paragraph>
-          The <Strong>exposure window</Strong> is the time between "patch
-          available" and "patch on every instance." Every step of the pipeline -
-          testing, approval, scheduling, deployment - adds time to that window.
-          The goal of patch management infrastructure is to make that window as
-          small as operationally safe.
-        </Paragraph>
-
-        <Paragraph>
-          SSH-ing into ten instances and running{" "}
-          <InlineHighlight>sudo dnf update</InlineHighlight> is annoying but
-          possible. Doing the same across 200 instances, in four AWS accounts,
-          with different operating systems, different patch schedules, and a
-          compliance audit scheduled for next month can be a massive burden
-          without infrastructure to support it.
+          This post covers how software vulnerabilities are discovered, scored,
+          and tracked, and then walks through a tag-driven, ring-based patching
+          process I built for an EC2 fleet using AWS Systems Manager.
         </Paragraph>
 
         <SectionHeading>What is Patching?</SectionHeading>
 
         <Paragraph>
-          Linux EC2 instances run software installed as packages:{" "}
-          <InlineHighlight>openssl</InlineHighlight>,{" "}
-          <InlineHighlight>curl</InlineHighlight>, the Linux kernel itself,
-          application runtimes like Python or Node. Packages have version
-          numbers - <InlineHighlight>openssl-3.0.7-1.amzn2023</InlineHighlight>{" "}
-          for example. When a security vulnerability is found in a specific
-          version, the maintainers release a new version with the fix.
-          Installing that new version is what "patching" means. The
-          vulnerability doesn't disappear from the old version, it just isn't
-          present in the new one.
+          EC2 instances run software installed as packages. Packages have
+          version numbers -{" "}
+          <InlineHighlight>openssl-3.0.7-1.amzn2023</InlineHighlight> for
+          example. When a security vulnerability is found in a specific version,
+          the maintainers release a new version with the fix. Installing that
+          new version is what "patching" means. The vulnerability doesn't
+          disappear from the old version, it just isn't present in the new one.
         </Paragraph>
 
         <Paragraph>
-          On Amazon Linux 2023, the package manager is{" "}
-          <InlineHighlight>dnf</InlineHighlight>. Running{" "}
-          <InlineHighlight>dnf update openssl</InlineHighlight> downloads and
-          installs the latest version. Running{" "}
-          <InlineHighlight>dnf update --security</InlineHighlight> applies only
-          packages where the update is classified as a security fix. The OS
-          tracks what's installed, what's available, and which security
-          advisories apply to each package.
+          This is something that comes with the territory when running EC2
+          instances and one of the reasons why people prefer containerised
+          services like AWS ECS (unless it's ECS on the EC2 launch type) so they
+          don't have to manage patching.
         </Paragraph>
-
-        <Paragraph>
-          Some patches require a reboot and some do not. When you update a
-          package like <InlineHighlight>curl</InlineHighlight>, the new binary
-          is written to disk and starts being used immediately by new processes.
-          But some packages, notably the Linux kernel and core libraries like{" "}
-          <InlineHighlight>glibc</InlineHighlight> - are loaded into memory when
-          the OS starts. Updating them writes the new version to disk, but the
-          old version stays running in memory. The fix only takes effect after
-          the instance reboots and loads the new code. This is the origin of the{" "}
-          <InlineHighlight>InstalledPendingReboot</InlineHighlight> compliance
-          state covered later in the post, and the reason why{" "}
-          <InlineHighlight>RebootIfNeeded</InlineHighlight> is the correct
-          default.
-        </Paragraph>
-
-        <Banner title="What are the kernel and glibc?" variant="info">
-          <Paragraph>
-            The <Strong>Linux kernel</Strong> is the core of the operating
-            system - it sits between your software and the hardware and manages
-            everything from memory to networking. <Strong>glibc</Strong> is the
-            standard C library that almost every Linux program depends on at
-            startup. Both are loaded into memory when the instance boots, so
-            updating them requires a reboot to take effect.
-          </Paragraph>
-        </Banner>
 
         <SectionHeading>
           The CVE Lifecycle (From Discovery to Your Instance)
@@ -268,59 +152,14 @@ const AWSPatchManagement = () => {
           window fires.
         </Paragraph>
 
-        <Paragraph>
-          The industry-standard remediation timelines come from NIST SP 800-40r4
-          (a US government security guide from the National Institute of
-          Standards and Technology) and are expected by compliance frameworks
-          like SOC 2 (Service Organisation Control - an auditing standard for
-          data security) and ISO 27001 (an international standard for
-          information security management): Critical within 15 days, High within
-          30 days, Medium within 90 days, Low within 365 days. A soak period and
-          maintenance window schedule should be designed to meet these timelines
-          for Critical and High severity patches while still allowing
-          regressions to surface in dev before they reach production.
-        </Paragraph>
-
         <Banner title="Soak Period" variant="info">
           <Paragraph>
             The <Strong>soak period</Strong> is the waiting time between when a
-            patch is released by the vendor and when your baseline automatically
-            approves it for installation. It gives the broader community time to
-            discover regressions in a new patch before it reaches your fleet. In
-            SSM this is controlled by the{" "}
-            <InlineHighlight>approve_after_days</InlineHighlight> field on a
-            baseline approval rule.
+            patch is released and when installation happens. It gives people
+            time to discover potential issues in a new patch before it reaches
+            critical instances.
           </Paragraph>
         </Banner>
-
-        <Paragraph>
-          The full lifecycle from discovery to your instance:
-        </Paragraph>
-
-        <TextList>
-          <TextListItem>
-            Researcher or automated scanner discovers the vulnerability
-          </TextListItem>
-          <TextListItem>CVE ID assigned by the relevant CNA</TextListItem>
-          <TextListItem>NVD publishes the CVE with a CVSS score</TextListItem>
-          <TextListItem>
-            Vendor (Amazon, Red Hat, Canonical) releases a patched package
-          </TextListItem>
-          <TextListItem>
-            AWS updates SSM patch metadata - the package is now classifiable as
-            a security fix
-          </TextListItem>
-          <TextListItem>
-            Your baseline approves the patch after the soak period
-          </TextListItem>
-          <TextListItem>
-            Your maintenance window installs it on the next scheduled run
-          </TextListItem>
-          <TextListItem>
-            Compliance state updates to{" "}
-            <InlineHighlight>Installed</InlineHighlight>
-          </TextListItem>
-        </TextList>
 
         <SectionHeading>
           CVSS Scoring (Reading the Severity Number)
@@ -378,116 +217,24 @@ const AWSPatchManagement = () => {
           </TextListItem>
         </TextList>
 
-        <Paragraph>
-          The score bands map directly to the{" "}
-          <InlineHighlight>compliance_level</InlineHighlight> you set in an SSM
-          Patch Baseline, and to the finding severities you will see in
-          Inspector v2: Critical (9.0-10.0), High (7.0-8.9), Medium (4.0-6.9),
-          Low (0.1-3.9). Inspector also factors in real-world exploitability
-          from threat intelligence feeds - a theoretically lower-scored CVE with
-          active exploit code in the wild may be prioritised higher than its raw
-          CVSS number suggests. Full Inspector v2 coverage is in the{" "}
-          <TextLink href="/blog/aws-security-encryption">
-            AWS Security &amp; Encryption post
-          </TextLink>
-          .
-        </Paragraph>
-
-        <SectionHeading>Mutable vs Immutable Patching</SectionHeading>
-
-        <Paragraph>
-          There are two fundamentally different approaches to keeping EC2
-          instances patched: mutable (in-place) and immutable (replace). Mutable
-          means the thing is changed in place. Immutable means it is replaced
-          rather than changed.
-        </Paragraph>
-
-        <Paragraph>
-          <Strong>Mutable patching</Strong> communicates with the running
-          instance via the SSM Agent over HTTPS and runs the package manager on
-          a schedule. The instance keeps running with updated software installed
-          on top of whatever was already there. This is what SSM Patch Manager
-          does. It is the right choice for stateful workloads - databases,
-          bastion hosts, long-lived build agents - where replacing the instance
-          would lose data or state. The downside: instances accumulate
-          configuration drift over time, and you have to actively manage them
-          for as long as they run.
-        </Paragraph>
-
-        <Paragraph>
-          <Strong>Immutable patching</Strong> bakes patches into a new AMI
-          before any instance is launched from it. This pre-built, pre-patched
-          AMI is called a <Strong>Golden AMI</Strong> - a known-good, hardened
-          image that serves as the standard starting point for every instance in
-          your fleet. When a new Golden AMI is built with all current patches
-          applied, the Auto Scaling Group is updated to use it and instances are
-          rotated out. Every instance always starts from a known-clean,
-          reproducible baseline. There is no drift because there is no
-          long-running instance to drift. The downside: rotating instances takes
-          time, and there is a gap between AMI builds during which newly
-          published CVEs are not yet baked in.
-        </Paragraph>
-
-        <Banner
-          title="Both approaches coexist in a mature setup"
-          variant="info"
-        >
-          <Paragraph>
-            Use SSM Patch Manager for your long-lived stateful instances. Use
-            Golden AMIs built with EC2 Image Builder for your autoscaling
-            application tier. Both are covered in this post, and a mature setup
-            runs them side by side.
-          </Paragraph>
-        </Banner>
-
         <SectionHeading>
           SSM Agent - How AWS Reaches Your Instances
         </SectionHeading>
 
         <Paragraph>
-          AWS Systems Manager is a family of tools for managing EC2 instances at
-          scale. It covers patching (Patch Manager), remote command execution
-          (Run Command), session-based access without SSH (Session Manager),
-          inventory and compliance (Fleet Manager, Compliance), and parameter
-          and secret storage. This post focuses on the patching side. The
-          parameter store and secrets capabilities are covered in the{" "}
-          <TextLink href="/blog/aws-security-encryption">
-            AWS Security &amp; Encryption post
-          </TextLink>
-          .
-        </Paragraph>
-
-        <Paragraph>
           The SSM Agent is a background process (
           <InlineHighlight>amazon-ssm-agent</InlineHighlight>) that runs on your
-          EC2 instance and <Strong>connects outbound over HTTPS</Strong> to SSM
-          endpoints in your AWS region. This is the component that receives and
-          executes instructions from Patch Manager, Run Command, and all other
-          SSM features. It comes pre-installed on Amazon Linux 2, AL2023, Ubuntu
-          16.04+, and Windows Server 2016+.
+          EC2 instance and <Strong>connects outbound over HTTPS</Strong>. This
+          is the component that receives and executes instructions from SSM
+          features like Patch Manager and Run Command. Some images will have
+          this already baked in, but others you might need to create a script to
+          install on boot.
         </Paragraph>
 
         <Paragraph>
-          The agent needs outbound HTTPS access to three endpoints:{" "}
-          <InlineHighlight>
-            ssm.&#123;region&#125;.amazonaws.com
-          </InlineHighlight>
-          ,{" "}
-          <InlineHighlight>
-            ec2messages.&#123;region&#125;.amazonaws.com
-          </InlineHighlight>
-          , and{" "}
-          <InlineHighlight>
-            ssmmessages.&#123;region&#125;.amazonaws.com
-          </InlineHighlight>
-          . In public subnets with a NAT gateway this works automatically. VPC
-          and subnet concepts are covered in the{" "}
-          <TextLink href="/blog/aws-vpc">AWS VPC post</TextLink>. Without
-          outbound HTTPS access, instances will never appear as managed in SSM.
-        </Paragraph>
-
-        <Paragraph>
-          Every instance also needs an IAM instance profile carrying the{" "}
+          It's important that the server itself has outbound HTTPS access,
+          otherwise instances will never appear as managed in SSM. Every
+          instance also needs an IAM instance profile carrying the{" "}
           <InlineHighlight>AmazonSSMManagedInstanceCore</InlineHighlight>{" "}
           managed policy. This grants the agent permission to register itself
           with SSM, download agent updates from S3, and write command output to
@@ -495,36 +242,8 @@ const AWSPatchManagement = () => {
           <TextLink href="/blog/aws-identity-access-management">
             IAM post
           </TextLink>
-          . One common mistake: attaching{" "}
-          <InlineHighlight>AmazonSSMFullAccess</InlineHighlight> to the instance
-          profile. That grants SSM admin permissions to the instance itself. Use
-          the scoped <InlineHighlight>ManagedInstanceCore</InlineHighlight>{" "}
-          policy instead.
+          .
         </Paragraph>
-
-        <Paragraph>
-          Once the agent is running with the right IAM and network access, the
-          instance appears in the SSM Fleet Manager console. The agent polls for
-          new instructions every 30 seconds. Ping status{" "}
-          <InlineHighlight>Online</InlineHighlight> means it is ready to receive
-          instructions. Any instance not showing as Online will not receive
-          patches.
-        </Paragraph>
-
-        <Banner title="Instance not appearing in Fleet Manager?" variant="info">
-          <Paragraph>
-            This is the most common first stumbling block. Check in order: (1)
-            confirm the instance profile has{" "}
-            <InlineHighlight>AmazonSSMManagedInstanceCore</InlineHighlight>{" "}
-            attached; (2) confirm outbound HTTPS is reachable to the three SSM
-            endpoints above; (3) verify the agent is actually running:{" "}
-            <InlineHighlight>
-              sudo systemctl status amazon-ssm-agent
-            </InlineHighlight>
-            . Existing instances pick up a newly attached profile without a
-            restart - SSM re-registers on the next heartbeat.
-          </Paragraph>
-        </Banner>
 
         <Banner title="Private subnets without NAT" variant="warning">
           <Paragraph>
@@ -539,197 +258,176 @@ const AWSPatchManagement = () => {
           </Paragraph>
         </Banner>
 
-        <SectionHeading>Patch Baselines (The Rulebook)</SectionHeading>
+        <SectionHeading>Ring Strategy</SectionHeading>
 
         <Paragraph>
-          A patch baseline is the rulebook that defines which patches are
-          approved for your fleet. When SSM evaluates an instance, it compares
-          the list of available packages against the baseline to determine which
-          ones should be installed and which ones affect compliance. If a patch
-          is in the baseline and not installed, the instance is non-compliant.
-          If a patch is not in the baseline, SSM ignores it entirely.
+          Not all instances are the same - some are critical in terms of up-time
+          and some are not as valuable and can be rebooted or torn down anytime.
+          You might not want to run the risk of applying a patch straight away
+          to important servers, unless you can say you're absolutely confident
+          it won't break anything. So there has to be a way to patch instances
+          in your environment that accommodates for all types of instances - and
+          that's where we can use Rings.
         </Paragraph>
 
         <Paragraph>
-          AWS provides default baselines for each supported OS - for example,{" "}
-          <InlineHighlight>
-            AWS-AmazonLinux2023DefaultPatchBaseline
-          </InlineHighlight>
-          . The default auto-approves Critical patches after zero days and High
-          after seven days. Zero-day approval for Critical sounds prudent but is
-          risky - a newly-released patch with a regression will reach production
-          almost immediately with no opportunity to catch it in dev first. A
-          custom baseline lets you control the soak period per environment.
+          I split my EC2's into two rings. <Strong>Ring 0</Strong> covers
+          non-production instances where I'm happy to allow updates to be
+          applied without any manual approval. <Strong>Ring 1</Strong> covers
+          production, and is designed to only allow patches to be installed
+          inside a window that's been explicitly authorised.
+        </Paragraph>
+
+        <SectionHeading>Tags</SectionHeading>
+
+        <Paragraph>
+          Every part of this setup - which baseline applies, which ring an
+          instance belongs to, whether it patches at all - is driven by three
+          tags on the instance:
+        </Paragraph>
+
+        <TextList>
+          <TextListItem>
+            <InlineHighlight>PatchGroup</InlineHighlight> - maps the instance to
+            a patch baseline
+          </TextListItem>
+          <TextListItem>
+            <InlineHighlight>PatchRing</InlineHighlight> - 0 for non-production,
+            1 for production
+          </TextListItem>
+          <TextListItem>
+            <InlineHighlight>PatchEnabled</InlineHighlight> - a simple on/off
+            switch, so patching can be paused for a specific instance without
+            removing it from its group
+          </TextListItem>
+        </TextList>
+
+        <PostImage
+          src={Tags}
+          alt="EC2 instance tags showing PatchRing, PatchEnabled, and PatchGroup"
+        />
+
+        <SectionHeading>Patch Baselines</SectionHeading>
+
+        <Paragraph>
+          A patch baseline defines which patches are approved for instances.
+          When SSM evaluates an instance, it compares the list of available
+          packages against the baseline to determine which ones should be
+          installed and which ones affect compliance. If a patch is in the
+          baseline and not installed, the instance is non-compliant. If a patch
+          is not in the baseline, SSM ignores it entirely.
         </Paragraph>
 
         <Paragraph>
-          Each approval rule has four key fields. The{" "}
-          <InlineHighlight>patch_filter</InlineHighlight> narrows which patches
-          the rule applies to using combinations of CLASSIFICATION and SEVERITY.
-          The <InlineHighlight>approve_after_days</InlineHighlight> is the soak
-          period - the number of days SSM waits after a patch's release date
-          before approving it. The{" "}
-          <InlineHighlight>compliance_level</InlineHighlight> maps to CVSS
-          severity bands: setting this to{" "}
-          <InlineHighlight>CRITICAL</InlineHighlight> means any instance missing
-          a matching patch is flagged as critically non-compliant in SSM
-          Compliance and in Security Hub. The{" "}
-          <InlineHighlight>enable_non_security</InlineHighlight> flag controls
-          whether non-security packages (Bugfixes, Enhancements) are included.
+          AWS provides default baselines for each supported OS. Although the
+          default auto-approves Critical patches after zero days and High after
+          seven days which sounds pretty prudent, but it could be risky - if a
+          newly-released patch reaches production almost immediately without
+          being 'soaked' in dev first, you could come to regret the decision.
+          It's worth saying that you can use a custom baseline that lets you
+          control the soak period per environment.
         </Paragraph>
+
+        <PostImage
+          src={BaselineId}
+          alt="Windows default patch baseline showing a 7-day auto-approval delay for Critical and Important severity updates"
+        />
+
+        <SectionHeading>Patch Groups</SectionHeading>
 
         <Paragraph>
-          Classification values for Amazon Linux 2023:{" "}
-          <InlineHighlight>Security</InlineHighlight> (CVE fixes),{" "}
-          <InlineHighlight>Bugfix</InlineHighlight> (non-security defect fixes),{" "}
-          <InlineHighlight>Enhancement</InlineHighlight>,{" "}
-          <InlineHighlight>Recommended</InlineHighlight>,{" "}
-          <InlineHighlight>Newpackage</InlineHighlight>. A security-focused
-          baseline targets Security and Bugfix at minimum.
+          A patch group is a named set of instances that share a baseline - it's
+          what the <InlineHighlight>PatchGroup</InlineHighlight> tag above
+          actually maps to. Rather than write custom baselines for this setup, I
+          mapped each patch group straight to the AWS-managed default baseline
+          for its OS -{" "}
+          <InlineHighlight>AWS-UbuntuDefaultPatchBaseline</InlineHighlight> for
+          the Ubuntu bastion host, and{" "}
+          <InlineHighlight>AWS-DefaultPatchBaseline</InlineHighlight> for the
+          Windows automation server:
         </Paragraph>
 
-        <Paragraph>
-          A common pattern is one baseline per environment, with{" "}
-          <InlineHighlight>approve_after_days</InlineHighlight> shorter in dev
-          and longer in prod - for example, seven days for dev and fourteen for
-          prod. Combined with staggered maintenance windows across environments,
-          this creates an effective multi-week soak from patch release to
-          production, giving regressions time to surface in dev before they
-          reach the fleet that matters most.
-        </Paragraph>
+        <PostImage
+          src={PatchGroups}
+          alt="Patch Manager patch group associations: ubuntu-bastion mapped to the Ubuntu default baseline, windows-automation mapped to the Windows default baseline"
+        />
 
-        <SubSectionHeading>
-          Scan vs Install - How the Dashboard Stays Current
-        </SubSectionHeading>
+        <SubSectionHeading>Scan vs Install</SubSectionHeading>
 
         <Paragraph>
           SSM Patch Manager has two operations. <Strong>Install</Strong> is what
-          the maintenance window runs once a week to apply patches.{" "}
-          <Strong>Scan</Strong> is a separate, frequent operation that reads the
-          installed package list, compares it against the baseline, and writes
-          the result to the compliance dashboard - without installing anything.
-          Scan runs as an SSM State Manager association on a schedule (hourly in
-          this module). Without a scan association, the compliance dashboard
-          only updates when the weekly maintenance window fires. With one, the
-          dashboard reflects your current state within the hour.
-        </Paragraph>
-
-        <SectionHeading>
-          Patch Groups (Targeting the Right Instances)
-        </SectionHeading>
-
-        <Paragraph>
-          A patch group is a named set of instances that share a baseline. An
-          instance joins a patch group by carrying the tag{" "}
-          <InlineHighlight>PatchGroup = &lt;group-name&gt;</InlineHighlight>.
-          The group name is then registered against a specific baseline - so
-          instances tagged{" "}
-          <InlineHighlight>PatchGroup = my-app-prod</InlineHighlight> use the
-          prod baseline with its longer soak, while instances tagged{" "}
-          <InlineHighlight>PatchGroup = my-app-dev</InlineHighlight> use the dev
-          baseline with its shorter one.
+          a maintenance window runs to apply patches. <Strong>Scan</Strong>
+          reads the installed package list, compares it against the baseline,
+          and writes the result to the compliance dashboard.
         </Paragraph>
 
         <Paragraph>
-          Instances without a <InlineHighlight>PatchGroup</InlineHighlight> tag
-          fall into the default group for their OS, which maps to the
-          AWS-managed default baseline. This is the unmanaged state - you lose
-          per-environment control and inherit AWS's aggressive approval timings.
-          Tag your EC2 Launch Templates (covered in the{" "}
-          <TextLink href="/blog/aws-elastic-compute-cloud">EC2 post</TextLink>)
-          so every new instance gets the correct tag automatically at launch.
-          For existing running instances, add the{" "}
-          <InlineHighlight>PatchGroup</InlineHighlight> tag directly to the
-          instance - SSM re-evaluates tags on every scan cycle and picks it up
-          within an hour, no restart required.
+          In this setup, each patch group has its own dedicated scan window
+          alongside its install window:
         </Paragraph>
 
-        <Paragraph>
-          One patch group maps to exactly one baseline. One baseline can back
-          multiple patch groups.{" "}
-          <InlineHighlight>aws_ssm_patch_group</InlineHighlight> is the
-          Terraform resource that creates the link.
-        </Paragraph>
+        <PostImage
+          src={MaintenanceWindows}
+          alt="List of maintenance windows, including separate scan and install windows per patch group"
+        />
 
-        <SectionHeading>
-          Maintenance Windows (Scheduling Patches)
-        </SectionHeading>
+        <SectionHeading>Maintenance Windows</SectionHeading>
 
         <Paragraph>
           A maintenance window is a scheduled time slot during which SSM will
-          execute tasks against your managed instances. Think of it as a cron
+          execute tasks against your managed instances. It's essentially a cron
           job managed by AWS - except it also handles concurrency limits, error
           thresholds, task ordering by priority, and notifications out of the
           box.
         </Paragraph>
 
-        <Paragraph>
-          The <InlineHighlight>schedule</InlineHighlight> field takes an SSM
-          cron expression. The format is{" "}
-          <InlineHighlight>
-            cron(minutes hours day-of-month month day-of-week year)
-          </InlineHighlight>
-          . <InlineHighlight>cron(0 2 ? * SUN *)</InlineHighlight> means minute
-          0, hour 2, any day-of-month (<InlineHighlight>?</InlineHighlight> when
-          day-of-week is specified), any month, Sunday, any year - so: Sunday at
-          02:00.{" "}
-          <Strong>
-            All SSM maintenance window cron expressions are evaluated in UTC.
-          </Strong>{" "}
-          A schedule of <InlineHighlight>cron(0 22 ? * FRI *)</InlineHighlight>{" "}
-          fires at 22:00 UTC on Friday - which is 23:00 BST in summer and 22:00
-          GMT in winter.
-        </Paragraph>
+        <PostImage
+          src={MaintenanceWindowDescription}
+          alt="Maintenance window description showing a Tuesday 1am UTC cron schedule, 2-hour duration, and 1-hour cutoff"
+        />
 
-        <Paragraph>
-          The <InlineHighlight>duration</InlineHighlight> is the total window
-          length in hours. The <InlineHighlight>cutoff</InlineHighlight> is how
-          many hours before the window ends SSM stops accepting new task
-          executions. Without a cutoff, a patching task that starts one minute
-          before the window closes could run for hours into business hours.
-        </Paragraph>
-
-        <Paragraph>
+        {/* <Paragraph>
           Instances are targeted by tag, not instance ID. Instance IDs change
           when instances are replaced - tag-based targeting is durable across
           rotations. If an instance is stopped when the window fires, SSM skips
           it - it will not be patched that cycle and will appear non-compliant
-          until the next window runs or until you patch it manually.
+          until the next window runs or until you patch it manually. A window's
+          target is registered against a tag filter, not a list of instances:
         </Paragraph>
+
+        <PostImage
+          src={MaintenanceWindowTargets}
+          alt="Maintenance window targets tab showing a single registered target"
+        /> */}
 
         <Paragraph>
-          A maintenance window can contain multiple tasks with integer
-          priorities. SSM executes them lowest-first. A typical setup uses
-          three: priority 0 (EBS snapshot before patching), priority 1 (install
-          patches), priority 2 (post-patch health check). If the snapshot task
-          fails, the patch task does not start.{" "}
-          <InlineHighlight>max_concurrency = "50%"</InlineHighlight> patches at
-          most half the fleet simultaneously, keeping the other half serving
-          traffic. <InlineHighlight>max_errors = "20%"</InlineHighlight> aborts
-          the task if more than 20% of instances fail, preventing a broken patch
-          from rolling out to the entire fleet.
+          I filter on both <InlineHighlight>PatchRing</InlineHighlight> and{" "}
+          <InlineHighlight>PatchEnabled: true</InlineHighlight>, so a window
+          only ever picks up instances that are both in-scope for that ring and
+          explicitly opted in to patching:
         </Paragraph>
+
+        <PostImage
+          src={MaintenanceWindowEditTargets}
+          alt="Edit targets screen showing instances selected by the PatchRing: 0 and PatchEnabled: true tags"
+        />
 
         <Paragraph>
-          Staggering windows across environments - dev on Friday, stage on
-          Saturday, prod on Sunday, for example - gives a regression time to
-          surface before it reaches production. A regression caught in dev on
-          Friday gives you Friday night and Saturday to investigate before stage
-          patches. A regression in stage on Saturday gives you Saturday night
-          before prod patches on Sunday. Picking prod's window during its
-          lowest-traffic period, with the rest of the weekend to monitor before
-          the working week starts, is a common choice.
+          Execution history confirms whether a run actually happened, which
+          targets were included, and whether it succeeded.
         </Paragraph>
 
-        <SectionHeading>
-          Patch Compliance States (Reading the Dashboard)
-        </SectionHeading>
+        <PostImage
+          src={MaintenanceWindowHistory}
+          alt="Maintenance window execution history showing three successful runs"
+        />
+
+        <SectionHeading>Patch Compliance States</SectionHeading>
 
         <Paragraph>
           SSM assigns a compliance state to every (instance, patch) pair. These
-          states are what you see in the Patch Manager dashboard, in compliance
-          summaries, and in Security Hub findings. Understanding them is
-          essential - not all "patched" states are equal.
+          states are what you see in the Patch Manager dashboard and in
+          compliance summaries:
         </Paragraph>
 
         <TextList>
@@ -772,498 +470,286 @@ const AWSPatchManagement = () => {
           </TextListItem>
         </TextList>
 
-        <Banner
-          title="InstalledPendingReboot - the false-compliance trap"
-          variant="warning"
-        >
-          <Paragraph>
-            If <InlineHighlight>RebootOption = NoReboot</InlineHighlight>, every
-            kernel or glibc update lands in{" "}
-            <InlineHighlight>InstalledPendingReboot</InlineHighlight>. The
-            dashboard shows a high installed count. The compliance score looks
-            fine. But the old, vulnerable kernel is still running in memory.
-            Always check this state explicitly when reading compliance reports,
-            and always use <InlineHighlight>RebootIfNeeded</InlineHighlight> as
-            the default.
-          </Paragraph>
-        </Banner>
-
-        <SectionHeading>
-          AWS Inspector v2 (Continuous Vulnerability Detection)
-        </SectionHeading>
+        <SectionHeading>Automation</SectionHeading>
 
         <Paragraph>
-          Patch Manager applies known patches on a schedule. Between windows,
-          new CVEs are published every day. Inspector v2 fills this gap - it
-          continuously scans your managed instances against the NVD and threat
-          intelligence feeds and surfaces vulnerabilities without waiting for
-          the next maintenance window.{" "}
-          <Strong>Inspector is detection; Patch Manager is remediation.</Strong>{" "}
-          You need both.
+          Each patch policy has its own custom SSM Automation document, and that
+          document is what a maintenance window's install task actually
+          executes:
         </Paragraph>
 
-        <Paragraph>
-          Inspector uses the SSM Agent's software inventory capability to read
-          the list of installed packages and versions on each managed instance.
-          It cross-references those versions against the vulnerability database
-          and factors in real-world exploitability - a CVE with active exploit
-          code in the wild is prioritised higher than a theoretical
-          vulnerability with the same CVSS score. No separate scanner or agent
-          is needed beyond what you have already set up. Inspector is covered in
-          full in the{" "}
-          <TextLink href="/blog/aws-security-encryption">
-            AWS Security &amp; Encryption post
-          </TextLink>
-          ; here the focus is on the integration with patching.
-        </Paragraph>
+        <PostImage
+          src={AutomationDocuments}
+          alt="SSM Documents list showing two custom automation documents, one per patch group"
+        />
 
         <Paragraph>
-          The alert pipeline: Inspector finding → EventBridge (AWS's serverless
-          event routing service - it watches for events from AWS services and
-          forwards matching events to targets you define) → SNS topic (
-          <TextLink href="/blog/aws-sns">SNS</TextLink> delivers the
-          notification to your email or on-call channel). For Critical findings
-          you want this firing within minutes, not waiting for a weekly report.
-        </Paragraph>
-
-        <SectionHeading>
-          Testing and Staging (The Patch Pipeline)
-        </SectionHeading>
-
-        <Paragraph>
-          Patches can introduce regressions. A security fix in{" "}
-          <InlineHighlight>openssl</InlineHighlight> might change TLS handshake
-          behaviour that breaks a connection your application makes. A{" "}
-          <InlineHighlight>glibc</InlineHighlight> update might change symbol
-          resolution that a compiled binary depends on. The same discipline you
-          apply to application deployments applies to OS patches - you discover
-          these issues in dev, not prod.
-        </Paragraph>
-
-        <Paragraph>
-          Staggering the soak period and the maintenance windows together
-          compounds the delay in a useful way. Take a seven-day dev soak and a
-          fourteen-day prod soak, combined with windows firing dev on Friday,
-          stage on Saturday, and prod on Sunday: a patch released on Monday is
-          approved for dev seven days later, and the dev window installs it that
-          Friday night. Prod, approved fourteen days from release, installs it
-          the following Sunday - one day after stage. The effective soak from
-          release to prod works out to roughly three weeks.
-        </Paragraph>
-
-        <Paragraph>
-          A pre-patch task that snapshots each instance's volumes before
-          patching starts gives you a rollback path. For stateful workloads on
-          the mutable path - databases, build agents - restoring that snapshot
-          is how you recover if a patch breaks something. For stateless
-          instances on the immutable path (Golden AMI), individual pre-patch
-          snapshots matter less - rollback means reverting to the previous
-          Launch Template version and triggering a fresh instance refresh
-          instead.
-        </Paragraph>
-
-        <Paragraph>
-          A post-patch task that runs after installation - curling the
-          application's health check endpoint and asserting a healthy response,
-          for example - gives you a clear automated signal without manually
-          checking each instance. If enough instances fail that check to breach
-          the window's error threshold, the maintenance window execution is
-          marked Failed.
-        </Paragraph>
-
-        <Banner
-          title="Canary patching for significant baseline changes"
-          variant="info"
-        >
-          <Paragraph>
-            For major baseline changes - new OS version, significant kernel
-            update - set{" "}
-            <InlineHighlight>max_concurrency = "1"</InlineHighlight> for the
-            first run. Patch one instance, observe for an hour, then increase
-            concurrency. This prevents a bad patch from hitting the entire fleet
-            before you notice.
-          </Paragraph>
-        </Banner>
-
-        <SectionHeading>
-          Emergency Patching (When You Can't Wait for Sunday)
-        </SectionHeading>
-
-        <Paragraph>
-          A Critical CVE drops on Tuesday. CVSS 9.8. Active exploit code is
-          already circulating on public repositories. Your prod maintenance
-          window is Sunday. Five days of known, remotely-exploitable, no-auth
-          exposure is not acceptable. The maintenance window is for routine
-          patching - emergencies need an out-of-band mechanism.
-        </Paragraph>
-
-        <Paragraph>
-          <InlineHighlight>aws ssm send-command</InlineHighlight> fires{" "}
+          Opening a document shows its step graph. Both documents in this
+          sandbox currently run a single step -{" "}
+          <InlineHighlight>installPatches</InlineHighlight>, an{" "}
+          <InlineHighlight>aws:runCommand</InlineHighlight> call to{" "}
           <InlineHighlight>AWS-RunPatchBaseline</InlineHighlight> with{" "}
-          <InlineHighlight>Operation=Install</InlineHighlight> immediately,
-          against your patch group tag, without waiting for the scheduled
-          window. You control the timing, monitor the execution live, and verify
-          compliance immediately after.
+          <InlineHighlight>Operation: Install</InlineHighlight> and{" "}
+          <InlineHighlight>RebootOption: RebootIfNeeded</InlineHighlight>:
         </Paragraph>
+
+        <PostImage
+          src={AutomationDocumentGraph}
+          alt="Automation document graph showing Start, an installPatches aws:runCommand step calling AWS-RunPatchBaseline, and End"
+        />
 
         <Paragraph>
-          Emergency patching checklist: (1) communicate to stakeholders -
-          unscheduled reboots during business hours need notice; (2) trigger EBS
-          snapshots for stateful workloads before starting; (3) run{" "}
-          <InlineHighlight>send-command</InlineHighlight> with Install; (4) tail
-          the CloudWatch Logs for command output; (5) run{" "}
-          <InlineHighlight>list-resource-compliance-summaries</InlineHighlight>{" "}
-          to confirm <InlineHighlight>Missing</InlineHighlight> →{" "}
-          <InlineHighlight>Installed</InlineHighlight>; (6) document the
-          emergency window with the CVE ID and timestamp for audit evidence.
+          The Automation executions view is where I'd go to confirm a run
+          followed the expected path per ring - for Ring 0, that's{" "}
+          <InlineHighlight>installPatches</InlineHighlight> running with nothing
+          in front of it. For Ring 1, the design is for a{" "}
+          <InlineHighlight>checkCalendar</InlineHighlight> step to run first
+          before <InlineHighlight>installPatches</InlineHighlight> is allowed to
+          start.
         </Paragraph>
 
-        <SectionHeading>What is an AMI?</SectionHeading>
+        <PostImage
+          src={AutomationExecutionsList}
+          alt="Automation executions list, mostly AWS Quick Setup housekeeping runs alongside the patch automation"
+        />
 
         <Paragraph>
-          An AMI (Amazon Machine Image) is a pre-configured OS snapshot that EC2
-          uses as a template when launching a new instance. It contains the
-          operating system, pre-installed software, and initial configuration.
-          When you launch an EC2 instance, you pick an AMI - the instance starts
-          from that state. AMIs are covered in depth in the{" "}
-          <TextLink href="/blog/aws-elastic-compute-cloud">EC2 post</TextLink>.
-          What matters here is the implication: if the AMI already has all
-          current security patches applied at build time, every instance
-          launched from it starts patched - before user data runs, before the
-          application starts, before any traffic arrives.
+          Clicking into any execution gives the same step-level breakdown -
+          action, status, start and end time per step:
         </Paragraph>
+
+        <PostImage
+          src={AutomationExecutionDetail}
+          alt="Automation execution detail view showing per-step action, status, and timing"
+        />
+
+        <SectionHeading>Change Calendar</SectionHeading>
 
         <Paragraph>
-          A Launch Template is the configuration spec for launching instances
-          from an AMI: which AMI, which instance type, which networking, which
-          IAM profile, which tags, which user data. An Auto Scaling Group uses a
-          Launch Template to know what to launch when it scales out. When you
-          update the Launch Template to point to a new AMI and trigger an
-          instance refresh, the ASG systematically replaces old instances
-          (launched from the old AMI) with new instances (launched from the new,
-          patched AMI).
+          Change Calendar is where the Ring 1 production gate is designed to
+          live. A calendar has a state -{" "}
+          <InlineHighlight>DEFAULT_OPEN</InlineHighlight> or{" "}
+          <InlineHighlight>DEFAULT_CLOSED</InlineHighlight> - and events on the
+          calendar override that default for their time period. The calendar is{" "}
+          <InlineHighlight>DEFAULT_OPEN</InlineHighlight>, so patching runs on
+          its normal schedule with nothing blocking it. A production-like
+          environment would flip that default to{" "}
+          <InlineHighlight>DEFAULT_CLOSED</InlineHighlight>, so patching only
+          proceeds when someone has explicitly opened a window for it:
         </Paragraph>
 
-        <SectionHeading>The Golden AMI Pattern</SectionHeading>
+        <PostImage
+          src={ChangeCalendar}
+          alt="Change Calendar showing the automation-patch-rollout-change-calendar in DEFAULT_OPEN state, with scan and Quick Setup events on the monthly view"
+        />
 
         <Paragraph>
-          Instead of patching running instances, build a new AMI with patches
-          already applied and rotate instances to it. Every instance in your ASG
-          always starts from a known-good, reproducible, patched baseline. No
-          instance has been running for two years accumulating configuration
-          drift. No "I'm not sure what's on this box."
+          Authorising a Ring 1 release means creating an event on the calendar
+          with the patch details and the time period the installation is allowed
+          to run in:
         </Paragraph>
+
+        <PostImage
+          src={ChangeCalendarCreateEvent}
+          alt="Change Calendar events view with Create event highlighted"
+        />
+
+        <PostImage
+          src={ChangeCalendarCreateEventDetail}
+          alt="Create scheduled event form: event name, description, event type, and the start/end date and time that authorise the window"
+        />
 
         <Paragraph>
-          Always start from an AWS-provided base AMI (
-          <InlineHighlight>al2023-ami-*-x86_64</InlineHighlight>). AWS publishes
-          and maintains these - starting from them means your Golden AMI
-          inherits their hardening. Never maintain your own base from scratch;
-          you would be responsible for every low-level OS decision that AWS
-          already makes for you.
+          The intended ruleset is straightforward: Ring 0 (
+          <InlineHighlight>PatchRing: 0</InlineHighlight>) skips the calendar
+          check entirely and installs on schedule. Ring 1 (
+          <InlineHighlight>PatchRing: 1</InlineHighlight>) requires the calendar
+          to be open at execution time, and only patches during a window someone
+          has explicitly authorised. Wiring that check into the gated documents
+          is the next step before this setup is production-ready.
         </Paragraph>
+
+        <PostImage
+          src={ChangeCalendarGateBehaviour}
+          alt="Execution detail for automation-ubuntu-bastion-install-gated showing a single installPatches step, with no calendar check present in this sandbox account"
+        />
+
+        <SectionHeading>Inventory</SectionHeading>
 
         <Paragraph>
-          At build time, capture the full list of installed packages:{" "}
-          <InlineHighlight>
-            rpm -qa --queryformat
-            '%&#123;NAME&#125;|%&#123;VERSION&#125;|%&#123;RELEASE&#125;\n'
-          </InlineHighlight>
-          . Store this manifest as an artifact tagged to the AMI. When a new CVE
-          is published, you can diff your current AMI's manifest against the
-          vulnerable package version and know immediately whether your fleet is
-          exposed - without scanning running instances. The cost of keeping
-          three AMI generations is approximately £1.50/month in snapshot
-          storage.
+          Inventory is collected by a State Manager association running{" "}
+          <InlineHighlight>AWS-GatherSoftwareInventory</InlineHighlight> on a
+          schedule, targeting the same tagged scope as patching. It's separate
+          from a patch Scan - this is a general software inventory, not a
+          compliance check against a baseline:
         </Paragraph>
 
-        <SectionHeading>
-          EC2 Image Builder (The AWS-Native Approach)
-        </SectionHeading>
+        <PostImage
+          src={StateManagerAssociations}
+          alt="State Manager associations running AWS-GatherSoftwareInventory, one per patch group"
+        />
 
         <Paragraph>
-          EC2 Image Builder is a fully managed AWS service that automates
-          building, testing, and distributing AMIs on a schedule. No external
-          CI/CD pipeline needed - everything lives in AWS. It is the closest
-          thing AWS has to "a Dockerfile and a build pipeline, but for AMIs."
+          The Inventory dashboard summarises coverage - which instances are
+          reporting, and how much of each inventory type has been collected:
         </Paragraph>
 
-        <SubSectionHeading>The Building Blocks</SubSectionHeading>
+        <PostImage
+          src={InventoryDashboard}
+          alt="Inventory dashboard showing managed instances with inventory enabled and coverage per inventory type"
+        />
+
+        <Paragraph>
+          The detailed view queries down to individual packages, versions, and
+          publishers per instance - useful for answering "is this specific
+          package version on this box" without connecting to it:
+        </Paragraph>
+
+        <PostImage
+          src={InventoryDetailedView}
+          alt="Inventory detailed view listing installed applications and package versions per instance"
+        />
+
+        <SectionHeading>Notifications</SectionHeading>
+
+        <Paragraph>
+          Every install step carries a{" "}
+          <InlineHighlight>NotificationConfig</InlineHighlight> pointing at an
+          SNS topic, firing on <InlineHighlight>Success</InlineHighlight> and{" "}
+          <InlineHighlight>Failed</InlineHighlight>. It's set at the step level,
+          so the same step that runs the patch is what raises the alert if it
+          doesn't go as expected:
+        </Paragraph>
+
+        <PostImage
+          src={Notifications}
+          alt="installPatches step detail showing NotificationConfig with an SNS topic ARN and Success/Failed notification events"
+        />
+
+        <Paragraph>
+          In practice that arrives as a plain Run Command notification email,
+          with the command ID, document name, instance ID, and status in the
+          body - enough to confirm what happened without opening the console:
+        </Paragraph>
+
+        <PostImage
+          src={EmailConfirmation}
+          alt="SNS email notification confirming a Run Command execution succeeded, with the command ID, document name, and instance ID in the payload"
+        />
+
+        <SectionHeading>Patch Reporting</SectionHeading>
+
+        <Paragraph>
+          Patch Manager's own dashboard is the first place to check day to day:
+          compliance summary, noncompliance counts by reason, and a history of
+          every scan and install operation, including which tags each one
+          targeted:
+        </Paragraph>
+
+        <PostImage
+          src={PatchManagerDashboard}
+          alt="Patch Manager dashboard showing compliance summary, noncompliance counts, and recent scan/install operations targeted by tag"
+        />
+
+        <Paragraph>
+          The Compliance reporting tab breaks the same data down per node:
+        </Paragraph>
+
+        <PostImage
+          src={PatchManagerComplianceSummary}
+          alt="Patch Manager compliance summary showing 100% compliant nodes, with the Compliance reporting tab highlighted"
+        />
+
+        <PostImage
+          src={ComplianceReporting}
+          alt="Compliance reporting tab listing both nodes as Compliant, with Export to S3 highlighted"
+        />
+
+        <Paragraph>
+          For SOC 2, ISO 27001, and similar frameworks, a point-in-time console
+          view isn't enough on its own - an auditor needs something they can be
+          handed without console access. Exporting produces a flat report -
+          instance ID, platform, patch baseline, patch group, compliance status,
+          and non-compliant counts by severity - that stands on its own as
+          evidence:
+        </Paragraph>
+
+        <PostImage
+          src={ComplianceReportExport}
+          alt="Exported patch compliance report opened in a spreadsheet, showing per-instance compliance status and severity counts"
+        />
+
+        <SectionHeading>Resource Data Sync</SectionHeading>
+
+        <Paragraph>
+          Resource Data Sync configures SSM to continuously deliver inventory
+          and compliance data to S3, so it's queryable and retained
+          independently of whatever the console currently shows. It's configured
+          from Fleet Manager's Account management menu:
+        </Paragraph>
+
+        <PostImage
+          src={ResourceDataSyncSetting}
+          alt="Fleet Manager Account management menu with Resource data syncs highlighted"
+        />
+
+        <Paragraph>
+          Checking the sync's status confirms it's actually delivering - last
+          sync time, target S3 bucket, and format:
+        </Paragraph>
+
+        <PostImage
+          src={ResourceDataSyncDetail}
+          alt="Resource data sync detail showing a successful sync, target S3 bucket, and JSON SerDe format"
+        />
+
+        <SectionHeading>Quick Reference</SectionHeading>
+
+        <Paragraph>
+          Day to day, the first thing I check is Fleet Manager - a quick read on
+          whether both nodes are connected and healthy before looking at
+          anything patch-specific:
+        </Paragraph>
+
+        <PostImage
+          src={FleetManager}
+          alt="Fleet Manager showing two managed nodes, a Windows automation server and an Ubuntu bastion host, both online"
+        />
+
+        <Paragraph>Beyond that, these are the views I actually use:</Paragraph>
 
         <TextList>
           <TextListItem>
-            <Strong>Component</Strong> - a single reusable build step defined as
-            a YAML document with phases (build, validate, test). AWS provides
-            managed components like{" "}
-            <InlineHighlight>update-linux</InlineHighlight> which runs{" "}
-            <InlineHighlight>dnf update</InlineHighlight>. You write custom
-            components for hardening steps.
+            <Strong>Fleet Manager</Strong> - connectivity and managed-node
+            health
           </TextListItem>
           <TextListItem>
-            <Strong>Recipe</Strong> - the ordered list of components that make
-            up your AMI, plus the base image to start from. Recipe = base AMI +
-            [patch component, hardening component, ...]. Analogous to a
-            Dockerfile's <InlineHighlight>FROM</InlineHighlight> +{" "}
-            <InlineHighlight>RUN</InlineHighlight> chain.
+            <Strong>Inventory</Strong> - software inventory collection status
+            and detail
           </TextListItem>
           <TextListItem>
-            <Strong>Infrastructure Configuration</Strong> - which EC2 instance
-            type to run the build on, which IAM role, which VPC subnet, and an
-            optional SNS topic for build failure notifications. Use at least
-            t3.small - t3.micro (1GB RAM) can run out of memory during{" "}
-            <InlineHighlight>dnf</InlineHighlight> dependency resolution,
-            causing silent build failures.
+            <Strong>Patch Manager</Strong> - compliance and patch status
           </TextListItem>
           <TextListItem>
-            <Strong>Distribution Configuration</Strong> - where to send the
-            finished AMI: which region, what to name it (with a build date
-            timestamp), which tags to apply, and optional launch permissions for
-            other accounts.
+            <Strong>State Manager</Strong> - association health for inventory
+            collection
           </TextListItem>
           <TextListItem>
-            <Strong>Pipeline</Strong> - wires everything together with a
-            schedule. Pipeline = Recipe + Infrastructure Config + Distribution
-            Config + cron schedule.
+            <Strong>Maintenance Windows</Strong> - schedules, targets, and run
+            history
+          </TextListItem>
+          <TextListItem>
+            <Strong>Automation</Strong> - step-level execution verification
           </TextListItem>
         </TextList>
-
-        <Paragraph>
-          Image Builder can run an Inspector image scan as a test phase. If the
-          scan finds Critical findings in the newly-built AMI, the pipeline
-          fails and the AMI is not distributed - preventing a vulnerable AMI
-          from reaching your ASG. This is enabled via the{" "}
-          <InlineHighlight>image_scanning_configuration</InlineHighlight> block
-          on the pipeline resource.
-        </Paragraph>
-
-        <SubSectionHeading>
-          Closing the Loop - AMI to Launch Template
-        </SubSectionHeading>
-
-        <Paragraph>
-          Image Builder creates the AMI, but something still needs to get the
-          new AMI ID into the Launch Template and trigger the ASG instance
-          refresh. The pattern: Image Builder emits an EventBridge event when a
-          pipeline execution completes successfully (
-          <InlineHighlight>
-            ImageBuilder Pipeline Execution State Change
-          </InlineHighlight>{" "}
-          with state <InlineHighlight>AVAILABLE</InlineHighlight>). An
-          EventBridge rule routes this to a Lambda function that calls{" "}
-          <InlineHighlight>
-            aws ec2 create-launch-template-version
-          </InlineHighlight>{" "}
-          with the new AMI ID, then calls{" "}
-          <InlineHighlight>
-            aws autoscaling start-instance-refresh
-          </InlineHighlight>
-          . For simpler environments, this step can be done manually by an
-          operator after each build, or automated via a CI/CD pipeline instead
-          of an EventBridge-triggered Lambda.
-        </Paragraph>
-
-        <SectionHeading>Packer (The HashiCorp Alternative)</SectionHeading>
-
-        <Paragraph>
-          Packer is an open-source tool by HashiCorp for building machine
-          images. You define the image in HCL (the same language as Terraform),
-          run <InlineHighlight>packer build</InlineHighlight>, and Packer
-          launches a temporary EC2 instance, runs your provisioners (shell
-          scripts), creates an AMI from the result, and terminates the temporary
-          instance. Unlike Image Builder, Packer runs in your CI/CD pipeline
-          rather than inside AWS.
-        </Paragraph>
-
-        <Paragraph>
-          When to choose Packer over Image Builder: your team is already in the
-          HashiCorp ecosystem (Terraform + Packer is a natural pair), you need
-          multi-cloud image builds (Packer supports Azure and GCP with the same
-          template), or you want the build logic version-controlled in your
-          repository alongside your application code. The{" "}
-          <TextLink href="/blog/github-ci-cd">GitHub CI/CD post</TextLink>{" "}
-          covers GitHub Actions in depth; the Packer workflow integrates cleanly
-          with OIDC authentication to AWS.
-        </Paragraph>
-
-        <Paragraph>
-          Key Packer decisions for patch management: use{" "}
-          <InlineHighlight>most_recent = true</InlineHighlight> in the source
-          AMI filter so you always start from the latest AWS base AMI regardless
-          of when the pipeline last ran. Use{" "}
-          <InlineHighlight>ssh_interface = "session_manager"</InlineHighlight>{" "}
-          to connect via SSM Session Manager - no port 22, no bastion. Use{" "}
-          <InlineHighlight>dnf update -y --security</InlineHighlight> rather
-          than a full upgrade to apply only security-relevant patches. Use{" "}
-          <InlineHighlight>post-processor "manifest"</InlineHighlight> to output
-          the AMI ID to a JSON file that the CI/CD step reads to update the
-          Launch Template.
-        </Paragraph>
-
-        <Banner
-          title="Image Builder and Packer produce the same output"
-          variant="info"
-        >
-          <Paragraph>
-            Both produce a tagged AMI in your account. Image Builder keeps the
-            build logic inside AWS - fully managed, no CI/CD dependency, with
-            built-in Inspector scanning as a pipeline gate. Packer keeps it in
-            your repository - version-controlled, testable, and multi-cloud.
-            Choose based on your team's tooling and whether you need the build
-            logic alongside your application code.
-          </Paragraph>
-        </Banner>
-
-        <SectionHeading>
-          ASG Instance Refresh (Rolling Instances to a New AMI)
-        </SectionHeading>
-
-        <Paragraph>
-          Whether the new AMI came from Image Builder or Packer, the mechanism
-          for getting it onto running instances is the same: update the Launch
-          Template to reference the new AMI ID, then trigger an ASG instance
-          refresh. The refresh replaces instances in batches - terminating old
-          instances and launching new ones from the updated template - without
-          taking the group offline.
-        </Paragraph>
-
-        <Paragraph>
-          <InlineHighlight>MinHealthyPercentage: 90</InlineHighlight> means at
-          most 10% of the fleet is being replaced at any moment, so 90% remains
-          serving traffic.{" "}
-          <InlineHighlight>InstanceWarmup: 300</InlineHighlight> gives each new
-          instance 300 seconds to pass EC2 health checks before the next batch
-          is replaced. If a new instance fails its health check, the refresh
-          pauses automatically - old instances keep running and nothing else is
-          replaced until you investigate and resume or cancel. The ASG instance
-          refresh is covered in the{" "}
-          <TextLink href="/blog/aws-elastic-compute-cloud">EC2 post</TextLink>;
-          here the focus is on how it integrates with the AMI rotation workflow.
-        </Paragraph>
-
-        <SectionHeading>
-          Alerting (Know When Something Goes Wrong)
-        </SectionHeading>
-
-        <Paragraph>
-          You need two alerting paths: operational (a patch task failed during a
-          maintenance window or an Image Builder build failed) and detection
-          (Inspector found a Critical vulnerability that warrants immediate
-          attention, as covered in Section 12).
-        </Paragraph>
-
-        <Paragraph>
-          Operational alerting: the maintenance window task already has a{" "}
-          <InlineHighlight>notification_config</InlineHighlight> that fires an{" "}
-          <TextLink href="/blog/aws-sns">SNS</TextLink> notification when a task
-          times out, is cancelled, or fails. EventBridge supplements this with
-          window-level alerting - watching for{" "}
-          <InlineHighlight>
-            SSM Maintenance Window Execution State Change
-          </InlineHighlight>{" "}
-          events where the status is FAILED or TIMED_OUT. This catches cases
-          where individual task errors don't trigger the per-task notification
-          but the overall window still failed. A second EventBridge rule watches
-          for Image Builder pipeline failures. All alerts route to a single
-          shared SNS topic.
-        </Paragraph>
-
-        <SectionHeading>
-          Compliance Reporting (Proving You're Patched)
-        </SectionHeading>
-
-        <Paragraph>
-          For SOC 2, ISO 27001, and similar frameworks, you need to demonstrate
-          that your fleet is patched and that you have a documented, automated
-          process for keeping it that way. The evidence is: a point-in-time
-          compliance summary (what is compliant, what is not, when it was
-          checked), the maintenance window execution history (when patching ran,
-          what succeeded, what failed), and records of any out-of-band patching
-          done for emergency CVEs.
-        </Paragraph>
-
-        <Paragraph>
-          The SSM Patch Manager dashboard in the console shows compliant and
-          non-compliant counts per patch group with drill-down to individual
-          instances and per-patch states. For programmatic reporting,{" "}
-          <InlineHighlight>list-resource-compliance-summaries</InlineHighlight>{" "}
-          with a filter on <InlineHighlight>NON_COMPLIANT</InlineHighlight>{" "}
-          gives you a JSON list of every non-compliant instance. Pipe it to{" "}
-          <InlineHighlight>jq</InlineHighlight> to extract into CSV for an
-          auditor.
-        </Paragraph>
-
-        <Paragraph>
-          The{" "}
-          <InlineHighlight>
-            ec2-managedinstance-patch-compliance-status-check
-          </InlineHighlight>{" "}
-          AWS Config rule (
-          <TextLink href="/blog/aws-monitoring-audit">
-            covered in the Monitoring &amp; Audit post
-          </TextLink>
-          ) continuously checks every managed instance against your baseline and
-          creates Config findings for non-compliant ones. Those findings flow
-          into Security Hub - AWS's centralised security findings dashboard -
-          which aggregates them alongside Inspector findings and GuardDuty
-          alerts for a single view across your account.
-        </Paragraph>
-
-        <SectionHeading>Scaling to Multiple Accounts</SectionHeading>
-
-        <Paragraph>
-          With dev, stage, and prod in separate AWS accounts (covered in the{" "}
-          <TextLink href="/blog/aws-multi-account-setup">
-            AWS Multi-Account Setup post
-          </TextLink>
-          ), managing patch infrastructure per-account via Terraform is
-          workable, but compliance visibility is fragmented - you would need to
-          query each account separately. Two AWS Organizations features solve
-          this at scale.
-        </Paragraph>
-
-        <Paragraph>
-          <Strong>Quick Setup for SSM</Strong> is an AWS Organizations feature
-          that provisions SSM prerequisites (IAM instance profiles, CloudWatch
-          Agent configuration) across all member accounts automatically,
-          including new accounts as they join. This solves the "every instance
-          in every account needs{" "}
-          <InlineHighlight>AmazonSSMManagedInstanceCore</InlineHighlight>"
-          problem at org scale without Terraform loops.{" "}
-          <Strong>Patch Policies</Strong> are the org-level equivalent of patch
-          baselines - defined once in the delegated admin account and applied to
-          targeted OUs. New accounts and new instances in those accounts inherit
-          the policy automatically.
-        </Paragraph>
-
-        <Paragraph>
-          For cross-account compliance visibility, Security Hub aggregation
-          streams findings from all member accounts to a single dashboard in the
-          management account. For raw data querying,{" "}
-          <InlineHighlight>aws_ssm_resource_data_sync</InlineHighlight> syncs
-          SSM compliance data to a central{" "}
-          <TextLink href="/blog/aws-s3">S3</TextLink> bucket where Athena can
-          query it across all accounts.
-        </Paragraph>
-
-        <EngineeringDecisions
-          title="Engineering Decisions"
-          decisions={patchManagementDecisions}
-        />
 
         <SectionHeading>Wrapping Up</SectionHeading>
 
         <Paragraph>
-          Patch management is one of those topics that looks simple on the
-          surface - "just run dnf update" - until you have to do it reliably
-          across a fleet, in multiple accounts, with compliance evidence, and
-          without taking production offline. This post has covered everything
-          from what a package version number actually means through to
-          multi-account patch policy rollout: the two fundamentally different
-          approaches to keeping a fleet patched, the AWS services that automate
-          each one, and the tradeoffs between them. Which approach fits which
-          workload, and how tightly to schedule the soak period, is a decision
-          only you can make for your own fleet - but the theory here should give
-          you what you need to make it.
+          This is just my own approach on how patch management can be handled,
+          it's by no means perfect and it can be iterated on and improved, no
+          doubt. But as always, if it's a topic I'm interested in, I'm inclined
+          to want to write about it.
         </Paragraph>
       </PostContainer>
     </PageWrapper>

@@ -975,7 +975,7 @@ export default function Blog() {
       {
         title: "AWS Patch Management",
         readingTime: "approx 30 minutes",
-        type: "Theory",
+        type: "Practical",
         date: "15/06/2026",
         tags: [
           {
@@ -1642,7 +1642,7 @@ export default function Blog() {
     {
       title: "AWS Patch Management",
       readingTime: "approx 30 minutes",
-      type: "Theory",
+      type: "Practical",
       date: "15/06/2026",
       tags: [
         {
