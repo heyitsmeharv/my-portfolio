@@ -660,6 +660,20 @@ const allPosts = [
     published: true,
   },
   {
+    title: "Locking a VPC Behind OpenVPN",
+    readingTime: "N/A",
+    type: "Theory",
+    date: "10/08/2026",
+    tags: [
+      { name: "AWS", background: "#FF9900", icon: <AWSSVG /> },
+      { name: "VPC", background: "#FF9900", icon: <AWSVPCSVG /> },
+      { name: "EC2", background: "#FF9900", icon: <AWSEC2SVG /> },
+    ],
+    intro: `coming soon...`,
+    navigate: "aws-vpn-bastion-access",
+    published: false,
+  },
+  {
     title: "Agile & Sprint Setups",
     readingTime: "approx 15 mins",
     type: "Theory",

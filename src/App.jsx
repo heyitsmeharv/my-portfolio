@@ -74,6 +74,7 @@ import LambdaPowertools from "./components/Posts/LambdaPowertools.jsx";
 import AWSMultiAccountSetup from "./components/Posts/AWSMultiAccountSetup.jsx";
 import AWSPatchManagement from "./components/Posts/AWSPatchManagement.jsx";
 import AWSDeployEC2 from "./components/Posts/AWSDeployEC2.jsx";
+import AWSVPNBastion from "./components/Posts/AWSVPNBastion.jsx";
 import AgileSprintSetups from "./components/Posts/AgileSprintSetups.jsx";
 import { posts } from "./helpers/posts";
 import {
@@ -102,7 +103,9 @@ const getDocumentTitle = (pathname, language) => {
   }
 
   if (pathname.startsWith("/flashcards")) {
-    return pathname.endsWith("/summary") ? "Summary sheet" : "Flashcards";
+    return pathname.endsWith("/summary")
+      ? "Summary sheet | Adam Harvey"
+      : "Flashcards | Adam Harvey";
   }
 
   const slug = slugFromPath(pathname);
@@ -413,6 +416,11 @@ const App = () => {
                         exact
                         path="/blog/deploy-to-ec2"
                         component={AWSDeployEC2}
+                      />
+                      <Route
+                        exact
+                        path="/blog/aws-vpn-bastion-access"
+                        component={AWSVPNBastion}
                       />
                       <Route
                         exact

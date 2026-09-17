@@ -1028,6 +1028,42 @@ export default function Blog() {
         published: true,
       },
       {
+        title: "Deploying to EC2",
+        readingTime: "approx 25 minutes",
+        type: "Practical",
+        date: "20/07/2026",
+        tags: [
+          {
+            name: "AWS",
+            background: "#FF9900",
+            icon: <AWSWhiteBackgroundSVG />,
+          },
+          { name: "EC2", background: "#FF9900", icon: <AWSEC2SVG /> },
+          { name: "Terraform", background: "#7B42BC", icon: <TerraformSVG /> },
+        ],
+        intro: `I want to walkthrough how we can deploy to an EC2 instance, how it can be configured to be secure, to scale, and to be resilient. The goal is to walk through different configurations and show the differences between them. Everything below happens in the AWS Console and can be easily replicated in any AWS account...`,
+        navigate: "deploy-to-ec2",
+        published: true,
+      },
+      {
+        title: "Locking a VPC Behind OpenVPN",
+        readingTime: "N/A",
+        type: "Theory",
+        date: "10/08/2026",
+        tags: [
+          {
+            name: "AWS",
+            background: "#FF9900",
+            icon: <AWSWhiteBackgroundSVG />,
+          },
+          { name: "VPC", background: "#FF9900", icon: <AWSVPCSVG /> },
+          { name: "EC2", background: "#FF9900", icon: <AWSEC2SVG /> },
+        ],
+        intro: `coming soon...`,
+        navigate: "aws-vpn-bastion-access",
+        published: false,
+      },
+      {
         title: "Agile & Sprint Setups",
         readingTime: "approx 15 mins",
         type: "Theory",
@@ -1691,6 +1727,20 @@ export default function Blog() {
       intro: `I want to walkthrough how we can deploy to an EC2 instance, how it can be configured to be secure, to scale, and to be resilient. The goal is to walk through different configurations and show the differences between them. Everything below happens in the AWS Console and can be easily replicated in any AWS account...`,
       navigate: "deploy-to-ec2",
       published: true,
+    },
+    {
+      title: "Locking a VPC Behind OpenVPN",
+      readingTime: "N/A",
+      type: "Theory",
+      date: "10/08/2026",
+      tags: [
+        { name: "AWS", background: "#FF9900", icon: <AWSWhiteBackgroundSVG /> },
+        { name: "VPC", background: "#FF9900", icon: <AWSVPCSVG /> },
+        { name: "EC2", background: "#FF9900", icon: <AWSEC2SVG /> },
+      ],
+      intro: `coming soon...`,
+      navigate: "aws-vpn-bastion-access",
+      published: false,
     },
     {
       title: "Agile & Sprint Setups",
