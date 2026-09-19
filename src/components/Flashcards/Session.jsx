@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
 
 import { Analytics } from "../../helpers/analytics";
+import BackButton from "../Button/BackButton";
 import { DeckIcon } from "./deckIcons";
 
 const TYPE_LABELS = {
@@ -18,19 +19,6 @@ const TopBar = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
-`;
-
-const ExitButton = styled.button.attrs({ type: "button" })`
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 1.4rem;
-  color: ${({ theme }) => theme.mutedText};
-  cursor: pointer;
-
-  &:hover {
-    color: ${({ theme }) => theme.text};
-  }
 `;
 
 const Counter = styled.span`
@@ -331,7 +319,7 @@ export default function Session({
   return (
     <div>
       <TopBar>
-        <ExitButton onClick={onExit}>Exit</ExitButton>
+        <BackButton onClick={onExit} />
         <Counter>
           {mode === "cram" ? "Cram · " : ""}
           {tally.cleared} done · {queue.length} left

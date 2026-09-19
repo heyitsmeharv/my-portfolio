@@ -4,8 +4,13 @@ import styled from "styled-components";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronForward } from "@styled-icons/ionicons-solid/ChevronForward";
 
+import BackButton from "../Button/BackButton";
 import { cardsForDecks } from "./decks";
 import { DeckIcon } from "./deckIcons";
+
+const TopBar = styled.div`
+  margin-bottom: 1.6rem;
+`;
 
 const Header = styled.header`
   margin-bottom: 1.6rem;
@@ -399,6 +404,10 @@ export default function StartScreen({
 
   return (
     <div>
+      {/* <TopBar>
+        <BackButton to="/flashcards" />
+      </TopBar> */}
+
       <Header>
         <Code>{exam.code}</Code>
         <Name>{exam.name}</Name>

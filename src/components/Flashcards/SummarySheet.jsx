@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { Analytics } from "../../helpers/analytics";
 import SlideInBottom from "../../animations/SlideInBottom";
 import { posts } from "../../helpers/posts";
+import BackButton from "../Button/BackButton";
 import { getExam } from "./decks";
 import { DeckIcon } from "./deckIcons";
 import { summaryImagesFor } from "./summaryImages";
@@ -69,16 +70,8 @@ const Inner = styled.div`
   }
 `;
 
-const BackLink = styled(Link)`
-  display: inline-block;
+const PostTopBar = styled.div`
   margin-bottom: 1.6rem;
-  font-size: 1.4rem;
-  color: ${({ theme }) => theme.mutedText};
-  text-decoration: none;
-
-  &:hover {
-    color: ${({ theme }) => theme.text};
-  }
 
   @media print {
     display: none;
@@ -430,7 +423,9 @@ export default function SummarySheet() {
   return (
     <Page>
       <Inner>
-        <BackLink to={`/flashcards/${exam.id}`}>Back</BackLink>
+        <PostTopBar>
+          <BackButton to={`/flashcards/${exam.id}`} />
+        </PostTopBar>
 
         <Sheet>
           <PrintFrame>
