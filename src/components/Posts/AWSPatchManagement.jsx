@@ -66,7 +66,7 @@ import ResourceDataSyncSetting from "../../resources/images/blog/AWSPatchManagem
 import ResourceDataSyncDetail from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_resource_data_sync2.jpeg";
 import InventoryDashboard from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_inventory_dashboard.jpeg";
 import InventoryDetailedView from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_inventory_detailed_view.jpeg";
-import FleetManager from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_fleet_manager.jpeg";
+// import FleetManager from "../../resources/images/blog/AWSPatchManagement/aws_patch_management_fleet_manager.jpeg";
 
 const PostContainer = styled(BasePostContainer)`
   animation: ${SlideInBottom} 0.5s forwards;
@@ -386,20 +386,6 @@ const AWSPatchManagement = () => {
           alt="Maintenance window description showing a Tuesday 1am UTC cron schedule, 2-hour duration, and 1-hour cutoff"
         />
 
-        {/* <Paragraph>
-          Instances are targeted by tag, not instance ID. Instance IDs change
-          when instances are replaced - tag-based targeting is durable across
-          rotations. If an instance is stopped when the window fires, SSM skips
-          it - it will not be patched that cycle and will appear non-compliant
-          until the next window runs or until you patch it manually. A window's
-          target is registered against a tag filter, not a list of instances:
-        </Paragraph>
-
-        <PostImage
-          src={MaintenanceWindowTargets}
-          alt="Maintenance window targets tab showing a single registered target"
-        /> */}
-
         <Paragraph>
           I filter on both <InlineHighlight>PatchRing</InlineHighlight> and{" "}
           <InlineHighlight>PatchEnabled: true</InlineHighlight>, so a window
@@ -410,6 +396,17 @@ const AWSPatchManagement = () => {
         <PostImage
           src={MaintenanceWindowEditTargets}
           alt="Edit targets screen showing instances selected by the PatchRing: 0 and PatchEnabled: true tags"
+        />
+
+        <Paragraph>
+          Using <InlineHighlight>Specify instance tags</InlineHighlight> for
+          target selection avoids using the instance IDs which can easily change
+          when an instance stops or gets replaced.
+        </Paragraph>
+
+        <PostImage
+          src={MaintenanceWindowTargets}
+          alt="Maintenance window targets tab showing a single registered target"
         />
 
         <Paragraph>
@@ -484,8 +481,7 @@ const AWSPatchManagement = () => {
         />
 
         <Paragraph>
-          Opening a document shows its step graph. Both documents in this
-          sandbox currently run a single step -{" "}
+          Opening a document shows its step graph -{" "}
           <InlineHighlight>installPatches</InlineHighlight>, an{" "}
           <InlineHighlight>aws:runCommand</InlineHighlight> call to{" "}
           <InlineHighlight>AWS-RunPatchBaseline</InlineHighlight> with{" "}
@@ -526,16 +522,12 @@ const AWSPatchManagement = () => {
         <SectionHeading>Change Calendar</SectionHeading>
 
         <Paragraph>
-          Change Calendar is where the Ring 1 production gate is designed to
-          live. A calendar has a state -{" "}
+          Change Calendar is a nice view of when your patching will take place.
+          The calendar has a state which is either{" "}
           <InlineHighlight>DEFAULT_OPEN</InlineHighlight> or{" "}
-          <InlineHighlight>DEFAULT_CLOSED</InlineHighlight> - and events on the
-          calendar override that default for their time period. The calendar is{" "}
-          <InlineHighlight>DEFAULT_OPEN</InlineHighlight>, so patching runs on
-          its normal schedule with nothing blocking it. A production-like
-          environment would flip that default to{" "}
-          <InlineHighlight>DEFAULT_CLOSED</InlineHighlight>, so patching only
-          proceeds when someone has explicitly opened a window for it:
+          <InlineHighlight>DEFAULT_CLOSED</InlineHighlight>. For production
+          (Ring 1) environments I will always use CLOSED and for non-production
+          (Ring 0) I would opt for OPEN.
         </Paragraph>
 
         <PostImage
@@ -571,7 +563,7 @@ const AWSPatchManagement = () => {
 
         <PostImage
           src={ChangeCalendarGateBehaviour}
-          alt="Execution detail for automation-ubuntu-bastion-install-gated showing a single installPatches step, with no calendar check present in this sandbox account"
+          alt="Execution detail for automation-ubuntu-bastion-install-gated showing a single installPatches step, with no calendar check present"
         />
 
         <SectionHeading>Inventory</SectionHeading>
@@ -640,10 +632,9 @@ const AWSPatchManagement = () => {
         <SectionHeading>Patch Reporting</SectionHeading>
 
         <Paragraph>
-          Patch Manager's own dashboard is the first place to check day to day:
-          compliance summary, noncompliance counts by reason, and a history of
-          every scan and install operation, including which tags each one
-          targeted:
+          Patch Manager's own dashboard shows compliance summary, noncompliance
+          counts by reason, and a history of every scan and install operation,
+          including which tags each one targeted:
         </Paragraph>
 
         <PostImage
@@ -664,15 +655,6 @@ const AWSPatchManagement = () => {
           src={ComplianceReporting}
           alt="Compliance reporting tab listing both nodes as Compliant, with Export to S3 highlighted"
         />
-
-        <Paragraph>
-          For SOC 2, ISO 27001, and similar frameworks, a point-in-time console
-          view isn't enough on its own - an auditor needs something they can be
-          handed without console access. Exporting produces a flat report -
-          instance ID, platform, patch baseline, patch group, compliance status,
-          and non-compliant counts by severity - that stands on its own as
-          evidence:
-        </Paragraph>
 
         <PostImage
           src={ComplianceReportExport}
@@ -704,19 +686,6 @@ const AWSPatchManagement = () => {
         />
 
         <SectionHeading>Quick Reference</SectionHeading>
-
-        <Paragraph>
-          Day to day, the first thing I check is Fleet Manager - a quick read on
-          whether both nodes are connected and healthy before looking at
-          anything patch-specific:
-        </Paragraph>
-
-        <PostImage
-          src={FleetManager}
-          alt="Fleet Manager showing two managed nodes, a Windows automation server and an Ubuntu bastion host, both online"
-        />
-
-        <Paragraph>Beyond that, these are the views I actually use:</Paragraph>
 
         <TextList>
           <TextListItem>
