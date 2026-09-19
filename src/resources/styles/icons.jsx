@@ -3592,12 +3592,23 @@ export const AWSMacieSVG = () => {
 export const BashSVG = () => {
   return (
     <StyledSvg width="32" height="32" viewBox="0 0 512 512">
-      <g id="5151e0c8492e5103c096af88a51f9b27" fill="#4C763B">
-        <path
-          display="inline"
-          d="M77.554,296.055l101.189-39.863v-0.611L77.554,215.413v-44.464l154.539,68.379v32.807L77.554,340.514   V296.055z M434.446,343.887v39.863H251.7v-39.863H434.446z M468.917,0.5H43.083C19.662,0.5,0.5,19.663,0.5,43.083v425.833   c0,23.421,19.162,42.583,42.583,42.583h425.834c23.421,0,42.583-19.162,42.583-42.583V43.083C511.5,19.663,492.338,0.5,468.917,0.5   z M468.917,468.917H43.083V106.958h425.834V468.917z"
-        ></path>
-      </g>
+      <rect x="8" y="8" width="496" height="496" rx="48" fill="#161616" />
+      <path
+        d="M56,8 L456,8 A48,48 0 0 1 504,56 L504,98 L8,98 L8,56 A48,48 0 0 1 56,8 Z"
+        fill="#2b2b2b"
+      />
+      <circle cx="45" cy="53" r="12" fill="#ff5f56" />
+      <circle cx="85" cy="53" r="12" fill="#ffbd2e" />
+      <circle cx="125" cy="53" r="12" fill="#27c93f" />
+      <path
+        d="M100,180 L180,255 L100,330"
+        fill="none"
+        stroke="#4EAA25"
+        strokeWidth="34"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <rect x="210" y="310" width="140" height="34" rx="6" fill="#4EAA25" />
     </StyledSvg>
   );
 };

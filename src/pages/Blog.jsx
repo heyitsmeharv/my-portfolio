@@ -763,7 +763,7 @@ export default function Blog() {
         type: "Practical",
         date: "09/10/2025",
         tags: [
-          { name: "DevOps", background: "#2d3436", icon: <DevOpsSVG /> },
+          { name: "DevOps" },
           { name: "Bash", background: "#2d3436", icon: <BashSVG /> },
         ],
         intro: `When you first start working in the command line, it can feel like stepping into a different world - one where you're talking directly to your computer instead of clicking buttons. 
@@ -1462,7 +1462,7 @@ export default function Blog() {
       type: "Practical",
       date: "09/10/2025",
       tags: [
-        { name: "DevOps", background: "#2d3436", icon: <DevOpsSVG /> },
+        { name: "DevOps" },
         { name: "Bash", background: "#2d3436", icon: <BashSVG /> },
       ],
       intro: `When you first start working in the command line, it can feel like stepping into a different world - one where you're talking directly to your computer instead of clicking buttons. 
