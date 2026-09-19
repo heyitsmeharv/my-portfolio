@@ -565,7 +565,7 @@ const allPosts = [
   },
   {
     title: "Lambda Powertools & Middy",
-    readingTime: "approx 15 mins",
+    readingTime: "approx 20 mins",
     type: "Theory",
     date: "01/05/2026",
     tags: [

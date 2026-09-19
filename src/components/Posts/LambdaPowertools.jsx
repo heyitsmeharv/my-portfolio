@@ -20,6 +20,7 @@ import {
   HeaderRow,
   IconWrapper,
   HeaderIcon,
+  PostImage,
 } from "../BlogLayout/BlogLayout";
 
 // typography
@@ -41,6 +42,13 @@ import {
   AWSLambdaSVG,
   TypeScriptSVG,
 } from "../../resources/styles/icons";
+
+// images
+import StructuredLogExample from "../../resources/images/blog/LambdaPowertools/lambda_powertools_structured_log.jpeg";
+import XRayTraceDetail from "../../resources/images/blog/LambdaPowertools/lambda_powertools_xray_trace_metadata.jpeg";
+import XRayServiceMap from "../../resources/images/blog/LambdaPowertools/lambda_powertools_xray_service_map.jpeg";
+import CloudWatchMetricsGraph from "../../resources/images/blog/LambdaPowertools/lambda_powertools_cloudwatch_metrics.jpeg";
+import LambdaFolderStructure from "../../resources/images/blog/LambdaPowertools/lambda_powertools_project_structure.jpeg";
 
 const installSnippet = `npm install @aws-lambda-powertools/logger \\
             @aws-lambda-powertools/tracer \\
@@ -247,6 +255,28 @@ export const handler = middy(lambdaHandler)
   .use(httpErrorHandler())
   .use(logMetrics(metrics));`;
 
+const schemaValidation = `import { validator } from '@middy/validator';
+import { transpileSchema } from '@middy/validator/transpile';
+
+const createOrderSchema = {
+  type: 'object',
+  properties: {
+    body: {
+      type: 'object',
+      properties: {
+        customerId: { type: 'string' },
+        items: { type: 'array', minItems: 1 },
+        total: { type: 'number' },
+      },
+      required: ['customerId', 'items', 'total'],
+    },
+  },
+};
+
+export const handler = middy(lambdaHandler)
+  .use(validator({ eventSchema: transpileSchema(createOrderSchema) }))
+  .use(httpErrorHandler());`;
+
 const wiredHandler = `import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
@@ -284,6 +314,107 @@ export const handler = middy(lambdaHandler)
   .use(injectLambdaContext(logger, { clearState: true }))
   .use(captureLambdaHandler(tracer, { captureResponse: false }))
   .use(logMetrics(metrics, { captureColdStartMetric: true }));`;
+
+const dataTf = `data "archive_file" "lambda" {
+  type        = "zip"
+  source_dir  = "\${path.module}/../src/handlers/order-service"
+  output_path = "\${path.root}/lambda_output/order-service.zip"
+}
+
+data "template_file" "lambda_assume_role_policy" {
+  template = file("\${path.module}/../iam/roles/lambda-assume-role-policy.json")
+}
+
+data "template_file" "lambda_role_policy" {
+  template = file("\${path.module}/../iam/policies/lambda-role-policy.json")
+}`;
+
+const roleTf = `resource "aws_iam_role" "lambda_role" {
+  name               = "order-service-lambda-role"
+  assume_role_policy = data.template_file.lambda_assume_role_policy.rendered
+}
+
+resource "aws_iam_role_policy" "lambda_role_policy" {
+  role   = aws_iam_role.lambda_role.name
+  policy = data.template_file.lambda_role_policy.rendered
+}`;
+
+const rolePolicyJson = `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+      ],
+      "Resource": "*"
+    }
+  ]
+}`;
+
+const assumeRolePolicyJson = `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": ["lambda.amazonaws.com"]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}`;
+
+const lambdaTf = `resource "aws_lambda_function" "order_service" {
+  function_name    = "order-service"
+  description      = "Processes incoming orders"
+  filename         = data.archive_file.lambda.output_path
+  source_code_hash = data.archive_file.lambda.output_base64sha256
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  timeout          = 30
+
+  tracing_config {
+    mode = "Active" // required for the Tracer utility to emit anything
+  }
+}`;
+
+const terraformApplyWorkflow = `jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: \${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: \${{ secrets.AWS_SECRET_KEY }}
+          aws-region: 'eu-west-2'
+
+      # Installs each lambda's own package.json before it's zipped up,
+      # so the archive_file data source picks up production node_modules
+      - name: Install lambda dependencies
+        run: find $MODULES_FOLDER -name 'package.json' -exec sh -c 'cd "$(dirname "{}")" && npm install --omit=dev' \\;
+
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.4
+
+      - name: Terraform init
+        run: terraform init
+        working-directory: \${{ env.ENV }}/\${{ env.BRANCH_NAME }}
+
+      - name: Terraform apply
+        run: terraform apply -var-file=env.tfvars -auto-approve
+        working-directory: \${{ env.ENV }}/\${{ env.BRANCH_NAME }}`;
 
 const clearStateGotcha = `// WITHOUT clearState: true
 // Warm invocation 1:
@@ -495,6 +626,11 @@ const LambdaPowertools = () => {
 
         <CodeBlockWithCopy code={logOutput} />
 
+        <PostImage
+          src={StructuredLogExample}
+          alt="A structured JSON log line in CloudWatch showing cold_start, function_arn, and xray_trace_id fields injected automatically by Powertools"
+        />
+
         <Paragraph>
           Notice <InlineHighlight>cold_start</InlineHighlight>,{" "}
           <InlineHighlight>function_arn</InlineHighlight>,{" "}
@@ -528,6 +664,11 @@ const LambdaPowertools = () => {
           took 12ms, the payment API took 280ms, and the receipt email took
           8ms".
         </Paragraph>
+
+        <PostImage
+          src={XRayServiceMap}
+          alt="X-Ray service map showing a Lambda function, its downstream Cognito and Secrets Manager calls, and per-node latency and fault metrics"
+        />
 
         <SubSectionHeading>Instrumenting AWS SDK clients</SubSectionHeading>
 
@@ -583,6 +724,11 @@ const LambdaPowertools = () => {
             specific incident but wouldn't query in bulk.
           </TextListItem>
         </TextList>
+
+        <PostImage
+          src={XRayTraceDetail}
+          alt="X-Ray trace detail view with the Segments Timeline on the left and the Metadata tab open on the right, showing the full request and response payload attached to a segment"
+        />
 
         <SectionHeading>Metrics</SectionHeading>
 
@@ -659,6 +805,11 @@ const LambdaPowertools = () => {
           write, two things: a searchable log record and a metric - no separate
           API call required.
         </Paragraph>
+
+        <PostImage
+          src={CloudWatchMetricsGraph}
+          alt="CloudWatch metrics console graphing four custom EMF-derived metrics over time, with a tooltip showing their summed values at a point in time"
+        />
 
         <Banner title="Metrics are only saved when flushed" variant="warning">
           <Paragraph>
@@ -787,6 +938,28 @@ const LambdaPowertools = () => {
 
         <CodeBlockWithCopy code={middyEcosystem} />
 
+        <SubSectionHeading>
+          Validating requests with @middy/validator
+        </SubSectionHeading>
+
+        <Paragraph>
+          <InlineHighlight>@middy/validator</InlineHighlight> checks an incoming
+          event against a JSON Schema before your handler ever runs. Malformed
+          requests - a missing field, the wrong type - are rejected with a 400
+          automatically, so the handler can assume the payload is already shaped
+          correctly:
+        </Paragraph>
+
+        <CodeBlockWithCopy code={schemaValidation} />
+
+        <Paragraph>
+          Pair it with <InlineHighlight>httpErrorHandler</InlineHighlight> so
+          the validation failure comes back as a proper HTTP error response
+          rather than an unhandled exception. Keep schemas in their own file per
+          endpoint - it keeps the handler focused on business logic and makes
+          the accepted shape of a request easy to find.
+        </Paragraph>
+
         <SectionHeading>Why They Pair</SectionHeading>
 
         <Paragraph>
@@ -818,6 +991,46 @@ const LambdaPowertools = () => {
             automatically emit a <InlineHighlight>ColdStart</InlineHighlight>{" "}
             metric for every cold invocation - useful for tracking cold start
             frequency in CloudWatch.
+          </TextListItem>
+        </TextList>
+
+        <SectionHeading>Project Structure</SectionHeading>
+
+        <Paragraph>
+          Once a handler is wired up with Logger, Tracer, Metrics, and Middy,
+          the file itself should contain little beyond the middleware chain and
+          business logic. Everything else - instrumented clients, shared
+          middleware, request schemas, error handling - belongs in its own file
+          so it can be reused across handlers and kept out of the way:
+        </Paragraph>
+
+        <PostImage
+          src={LambdaFolderStructure}
+          alt="A Lambda function's folder structure showing a libs directory with auditError.js, commonMiddleware.js, and dynamodbClient.js, and a schemas directory alongside the handler"
+        />
+
+        <TextList>
+          <TextListItem>
+            <Strong>libs/dynamodbClient.js</Strong> - instantiates the Tracer
+            and any AWS SDK clients wrapped with{" "}
+            <InlineHighlight>captureAWSv3Client</InlineHighlight>, so every
+            handler that needs DynamoDB imports the same instrumented client
+            instead of creating its own.
+          </TextListItem>
+          <TextListItem>
+            <Strong>libs/commonMiddleware.js</Strong> - exports the shared Middy
+            chain (error handling at minimum) so every handler wraps itself the
+            same way rather than reassembling the chain by hand.
+          </TextListItem>
+          <TextListItem>
+            <Strong>libs/auditError.js</Strong> - a single place to handle
+            errors thrown from a handler. Centralising this keeps the handler
+            itself clean and gives you one spot to add follow-up actions -
+            alerting, a dead-letter write - when something fails.
+          </TextListItem>
+          <TextListItem>
+            <Strong>schemas/</Strong> - one JSON Schema file per endpoint, used
+            by <InlineHighlight>@middy/validator</InlineHighlight>.
           </TextListItem>
         </TextList>
 
@@ -906,6 +1119,79 @@ const LambdaPowertools = () => {
           the trace size and can hit X-Ray's segment size limit. Pass{" "}
           <InlineHighlight>captureResponse: false</InlineHighlight> to disable
           it, which is shown in the wired handler example above.
+        </Paragraph>
+
+        <SectionHeading>Deployment</SectionHeading>
+
+        <Paragraph>
+          None of the Powertools instrumentation does anything unless the
+          function it's deployed to actually enables X-Ray and grants the
+          permissions the utilities need. Here's the Terraform to deploy the
+          function itself, and the GitHub Actions workflow that applies it.
+        </Paragraph>
+
+        <SubSectionHeading>Terraform</SubSectionHeading>
+
+        <Paragraph>
+          <InlineHighlight>data.tf</InlineHighlight> zips up the handler source
+          and loads the IAM policy documents as templates:
+        </Paragraph>
+
+        <CodeBlockWithCopy code={dataTf} />
+
+        <Paragraph>
+          <InlineHighlight>role.tf</InlineHighlight> creates the execution role
+          and attaches the rendered policy to it:
+        </Paragraph>
+
+        <CodeBlockWithCopy code={roleTf} />
+
+        <Paragraph>
+          <InlineHighlight>lambda-role-policy.json</InlineHighlight> - the bare
+          minimum a Powertools-instrumented function needs: permission to write
+          its own logs, and permission to send trace segments to X-Ray. Add
+          whatever else the handler itself calls - DynamoDB, Secrets Manager -
+          on top of this:
+        </Paragraph>
+
+        <CodeBlockWithCopy code={rolePolicyJson} />
+
+        <Paragraph>
+          <InlineHighlight>lambda-assume-role-policy.json</InlineHighlight> -
+          lets the Lambda service assume this role:
+        </Paragraph>
+
+        <CodeBlockWithCopy code={assumeRolePolicyJson} />
+
+        <Paragraph>
+          <InlineHighlight>lambda.tf</InlineHighlight> defines the function
+          itself, referencing the archive and role from above. The important
+          part for Powertools is{" "}
+          <InlineHighlight>tracing_config</InlineHighlight> - without{" "}
+          <InlineHighlight>mode = "Active"</InlineHighlight>, the Tracer utility
+          silently falls back to a no-op, per the gotcha above:
+        </Paragraph>
+
+        <CodeBlockWithCopy code={lambdaTf} />
+
+        <SubSectionHeading>GitHub Actions</SubSectionHeading>
+
+        <Paragraph>
+          Because the module lives outside{" "}
+          <InlineHighlight>node_modules</InlineHighlight> and isn't bundled, the
+          CI job needs to install each Lambda's production dependencies before
+          Terraform zips the source directory - otherwise the archive ships
+          without <InlineHighlight>@aws-lambda-powertools/*</InlineHighlight>{" "}
+          and <InlineHighlight>@middy/*</InlineHighlight> in it:
+        </Paragraph>
+
+        <CodeBlockWithCopy code={terraformApplyWorkflow} />
+
+        <Paragraph>
+          Run this step before <InlineHighlight>terraform init</InlineHighlight>{" "}
+          - Terraform's <InlineHighlight>archive_file</InlineHighlight> data
+          source zips whatever is on disk at apply time, so the dependencies
+          have to already be installed by the time it runs.
         </Paragraph>
 
         <SectionHeading>Wrapping Up</SectionHeading>

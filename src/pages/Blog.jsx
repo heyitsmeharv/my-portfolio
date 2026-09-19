@@ -925,7 +925,7 @@ export default function Blog() {
       },
       {
         title: "Lambda Powertools & Middy",
-        readingTime: "approx 15 mins",
+        readingTime: "approx 20 mins",
         type: "Theory",
         date: "01/05/2026",
         tags: [
@@ -1604,7 +1604,7 @@ export default function Blog() {
     },
     {
       title: "Lambda Powertools & Middy",
-      readingTime: "approx 15 mins",
+      readingTime: "approx 20 mins",
       type: "Theory",
       date: "01/05/2026",
       tags: [
