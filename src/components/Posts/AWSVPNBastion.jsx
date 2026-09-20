@@ -270,158 +270,29 @@ const AWSVPNBastion = () => {
 
         <CodeBlockWithCopy compact code={awsVpnBastionCidrNesting} />
 
-        <SubSectionHeading>
-          Why the range matters more here than usual
-        </SubSectionHeading>
-
-        <Paragraph>
-          For a VPC that never talks to anything else, the range is arbitrary.
-          This one is going to be reached over a VPN, and that changes the
-          calculation.
-        </Paragraph>
-
-        <Paragraph>
-          When a client connects, the VPN server tells it which networks to send
-          down the tunnel. If one of those overlaps with a network the client is
-          already attached to - a home router, an office LAN, another VPN - the
-          client now has two valid claims on the same addresses. It will pick
-          one. Sometimes it picks the one you wanted.
-        </Paragraph>
-
-        <Banner title="No configuration resolves an overlap" variant="warning">
-          <Paragraph>
-            Both answers are correct as far as the client is concerned, so there
-            is nothing to fix at the VPN layer. The only remedy is to renumber
-            one side of the collision, and by the time you find out, one side is
-            a laptop belonging to somebody who is not you.
-          </Paragraph>
-        </Banner>
-
-        <Paragraph>
-          So the range needs to be private, and it needs to be unusual.
-        </Paragraph>
-
-        <SubSectionHeading>
-          Private means three specific ranges
-        </SubSectionHeading>
+        <SubSectionHeading>Preventing Overlap</SubSectionHeading>
 
         <Paragraph>
           RFC 1918 reserves exactly three blocks for private use. Nobody owns
           them. Everyone uses them at the same time and none of it conflicts,
-          because internet routers discard these addresses on sight - traffic
-          using them never leaves the network it started on, so two
-          organisations using the same range never meet.
+          because internet routers discard these addresses. This is important
+          because if you pick a range outside of these blocks, you run the risk
+          of picking an already assigned address which will cause potential
+          network failures.
         </Paragraph>
 
         <CodeBlockWithCopy compact code={awsVpnBastionRfc1918} />
 
-        <Paragraph>
-          Which is worth stating plainly, because the causality usually gets
-          told backwards. <InlineHighlight>192.168.x.x</InlineHighlight> is not
-          reserved because home routers use it. Home routers use it because it
-          was reserved. The same goes for AWS picking{" "}
-          <InlineHighlight>172.31.0.0/16</InlineHighlight> for default VPCs and
-          Docker picking <InlineHighlight>172.17.0.0/16</InlineHighlight> for
-          its bridge. Those are vendor habits that the reservation made
-          possible, not allocations.
-        </Paragraph>
+        <SubSectionHeading>What comes with a VPC?</SubSectionHeading>
 
-        <SubSectionHeading>
-          What happens if you use something else
-        </SubSectionHeading>
-
-        <Paragraph>
-          Everything outside those three blocks belongs to an organisation. Not
-          necessarily in use - <Strong>allocated</Strong>. IANA ran out of
-          unallocated IPv4 space in 2011, so there is no free pool left to
-          borrow from.
-        </Paragraph>
-
-        <Paragraph>
-          Suppose you build the VPC as{" "}
-          <InlineHighlight>30.30.0.0/16</InlineHighlight> because it looked
-          empty. AWS will let you. You immediately get a route saying{" "}
-          <InlineHighlight>30.30.0.0/16</InlineHighlight> is local to your VPC,
-          and that route cannot be deleted. Now an instance tries to reach the
-          real <InlineHighlight>30.30.5.5</InlineHighlight>, somewhere out on
-          the internet. The local route is more specific than the default route,
-          so it wins, and the packet is delivered inside your own VPC where
-          nothing is listening.
-        </Paragraph>
-
-        <Paragraph>
-          You have not broken anything for anyone else. You have made 65,536
-          real internet addresses permanently unreachable from inside your own
-          network, and you cannot fix it, because the local route is undeletable
-          and the primary CIDR is immutable.
-        </Paragraph>
-
-        <Paragraph>
-          This is not hypothetical. Organisations squatted on{" "}
-          <InlineHighlight>1.0.0.0/8</InlineHighlight> for years on the grounds
-          that nobody seemed to be using it. APNIC allocated it, Cloudflare
-          launched <InlineHighlight>1.1.1.1</InlineHighlight> on it in 2018, and
-          a lot of networks discovered simultaneously that they could not reach
-          the most heavily advertised DNS resolver on the internet. The owner
-          had not changed. It had just become visible.
-        </Paragraph>
-
-        <SubSectionHeading>
-          The ranges to avoid even though they are legal
-        </SubSectionHeading>
-
-        <Paragraph>
-          Within RFC 1918, some slices are far more contested than others:
-        </Paragraph>
-
-        <TextList>
-          <TextListItem>
-            <InlineHighlight>172.31.0.0/16</InlineHighlight> - the default VPC,
-            in every AWS region, in every account
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>192.168.0.0/24</InlineHighlight> and{" "}
-            <InlineHighlight>192.168.1.0/24</InlineHighlight> - the factory
-            default of nearly every home router, which is to say the network
-            your VPN clients are sitting on
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>10.0.0.0/16</InlineHighlight> - everybody's first
-            hand-picked choice, and therefore the most likely to collide with a
-            partner or an acquisition later
-          </TextListItem>
-          <TextListItem>
-            <InlineHighlight>10.8.0.0/24</InlineHighlight> - OpenVPN's own
-            default client pool, which this build uses for the tunnel itself
-          </TextListItem>
-        </TextList>
-
-        <Paragraph>
-          <InlineHighlight>10.20.0.0/16</InlineHighlight> avoids all of them.
-          There is nothing special about it beyond being an unlikely thing for
-          somebody else to have picked, and that is the entire requirement.
-          Collisions are a planning failure rather than a space shortage -{" "}
-          <InlineHighlight>10.0.0.0/8</InlineHighlight> contains 256 separate
-          /16 networks, and allocating them from a scheme costs nothing.
-        </Paragraph>
-
-        <SubSectionHeading>
-          Three things AWS creates that you did not ask for
-        </SubSectionHeading>
-
-        <Paragraph>
-          Creating the VPC quietly produces three more objects, and one of them
-          explains a behaviour that otherwise looks like magic.
-        </Paragraph>
+        <Paragraph>Creating the VPC produces three more objects:</Paragraph>
 
         <TextList>
           <TextListItem>
             <Strong>A main route table</Strong>, containing a route for the
             VPC's own range pointing at a target called{" "}
             <InlineHighlight>local</InlineHighlight>. It cannot be deleted. This
-            is why every subnet in a VPC can reach every other subnet with no
-            configuration at all - the route was there before you made the
-            subnets.
+            is why every subnet in a VPC can reach every other subnet.
           </TextListItem>
           <TextListItem>
             <Strong>A default network ACL</Strong>, which allows everything in
@@ -429,9 +300,7 @@ const AWSVPNBastion = () => {
           </TextListItem>
           <TextListItem>
             <Strong>A default security group</Strong>, which allows traffic from
-            anything else carrying the same group. This build never uses it.
-            Purpose-built groups make intent readable to whoever inherits the
-            account.
+            anything else carrying the same group.
           </TextListItem>
         </TextList>
 
