@@ -290,9 +290,9 @@ const AWSVPNBastion = () => {
         <TextList>
           <TextListItem>
             <Strong>A main route table</Strong>, containing a route for the
-            VPC's own range pointing at a target called{" "}
-            <InlineHighlight>local</InlineHighlight>. It cannot be deleted. This
-            is why every subnet in a VPC can reach every other subnet.
+            VPC's own range called <InlineHighlight>local</InlineHighlight>. It
+            cannot be deleted. This is why every subnet in a VPC can reach every
+            other subnet.
           </TextListItem>
           <TextListItem>
             <Strong>A default network ACL</Strong>, which allows everything in
@@ -304,61 +304,39 @@ const AWSVPNBastion = () => {
           </TextListItem>
         </TextList>
 
-        <Paragraph>
-          Leave the main route table alone. It is the fallback for any subnet
-          you do not explicitly associate with something else, so if it holds
-          only the local route then a subnet you forget about can talk inside
-          the VPC and nowhere else. Put an internet gateway route in it and
-          every subnet you forget about becomes public, silently, including ones
-          created years later by somebody who has never heard of this decision.
-        </Paragraph>
-
-        <Banner title="The distinction the rest of the post depends on">
+        <Banner title="The distinction is important" type="info">
           <Paragraph>
             Routing answers <Strong>where can this traffic go</Strong>. Security
-            groups answer <Strong>what is allowed</Strong>. They are separate
-            systems and they fail in different ways.
+            groups answer <Strong>what is allowed</Strong>.
           </Paragraph>
           <Paragraph>
-            The local route means every instance in this VPC can always route to
-            every other instance - the packet knows the way. When a connection
-            between them fails, it fails because a security group refused it,
-            not because the network was unaware of the destination. Keeping
-            those two ideas apart is what makes it possible to debug this stack
-            rather than guess at it.
+            This is handy to note for debugging purposes. Does it fail because
+            the network was unaware of the destination? Or because it's being
+            refused access?
           </Paragraph>
         </Banner>
 
         <Paragraph>
-          Two settings are also worth checking before you move on.{" "}
-          <Strong>DNS hostnames are off</Strong> in a VPC you create yourself,
-          though DNS resolution is on; the default VPC has both, which is why
-          this catches people out. And <Strong>tenancy</Strong> is set once for
-          the whole VPC and applies to every instance launched into it - the
-          Dedicated option costs roughly ten times as much and cannot be changed
-          afterwards.
+          There is a setting that is worth highlighting as it's off by default -{" "}
+          <Strong>enableDnsHostnames</Strong> which is only relevant for Route
+          53 private hosted zones when you want to give internal hosts real
+          names like bastion.internal.example.com instead of 10.20.10.161.
         </Paragraph>
 
-        {/* ── 2. Public subnets and the IGW ─────────────────────────────────── */}
         <SectionHeading>Public Subnets and the Internet Gateway</SectionHeading>
 
         <Paragraph>
-          A VPC spans a region. A <Strong>subnet</Strong> sits in exactly one
-          availability zone and cannot be stretched across two. That single
-          constraint is the reason high availability in AWS always involves more
-          subnets - a zone failure takes everything inside it, and a subnet is
-          entirely inside one.
-        </Paragraph>
-
-        <Paragraph>
-          Worth knowing before you read anyone else's documentation:{" "}
-          <Strong>zone names are randomised per account</Strong>. Your{" "}
-          <InlineHighlight>eu-west-2a</InlineHighlight> is almost certainly not
-          the same building as somebody else's. AWS shuffles the mapping so that
-          customers do not all pile into the zone whose name sorts first. The
-          stable identifier is the zone ID, shown alongside the name as
-          something like <InlineHighlight>euw2-az2</InlineHighlight>, and that
-          one does refer to the same physical place in every account.
+          I've mentioned that a VPC is bound to the region it's created in,
+          which means a <Strong>subnet</Strong> sits in exactly one availability
+          zone in the region that the VPC resides and cannot be stretched across
+          different regions or multiple AZ's. The reason why I mention this
+          again is because of how AWS handle assigning your resources inside
+          subnets. When creating resources you might pick{" "}
+          <InlineHighlight>eu-west-2a</InlineHighlight> but AWS shuffles the
+          mapping so that customers do not all pile into the zone whose name
+          sorts first. Check the zone ID which should be something like{" "}
+          <InlineHighlight>euw2-az2</InlineHighlight>, and that does refer to
+          the actual physical place the resources are in.
         </Paragraph>
 
         <CodeBlockWithCopy compact code={awsVpnBastionSubnetReserved} />
