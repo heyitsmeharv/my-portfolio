@@ -480,7 +480,7 @@ const allPosts = [
   {
     title: "Semantic Versioning with Conventional Commits",
     readingTime: "approx 5 mins",
-    type: "Practical",
+    type: "Theory",
     date: "05/01/2026",
     tags: [
       {
@@ -559,7 +559,7 @@ const allPosts = [
       { name: "JavaScript", background: "#F4BF36", icon: <JavascriptSVG /> },
       { name: "React", background: "#20232a", icon: <ReactjsSVG /> },
     ],
-    intro: `I've published a few things to npm over the years but always in a fairly ad-hoc way - run npm publish, hope for the best. For architexter, a small package I use across this portfolio, I wanted to do it properly: a real build pipeline, tests that run before every publish, and a versioning workflow I can actually follow...`,
+    intro: `I've dabbled with publishing packages to npm in the past and I have most recently done so for architexter, a small package I use across this portfolio to render text outlines as ASCII diagrams. I thought that it would make for a decent topic...`,
     navigate: "publishing-an-npm-package",
     published: true,
   },

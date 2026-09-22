@@ -192,8 +192,8 @@ const NpmPublishing = () => {
             architexter
           </TextLink>
           , a small package I use across this portfolio to render text outlines
-          as ASCII diagrams. I thought that it would make for an okay blog post
-          to walk through - as I'm definitely not running out of blogging ideas!
+          as ASCII diagrams. I thought that it would make for a decent topic -
+          as I'm definitely not running out of blogging ideas!
         </Paragraph>
 
         <ProjectArchitecture
