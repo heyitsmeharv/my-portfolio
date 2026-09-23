@@ -1820,88 +1820,28 @@ export const awsVpnBastionRoutePrint = `route print -4        (Windows, while co
   0.0.0.0                 0.0.0.0           192.168.0.1    192.168.0.231
   10.8.0.0                255.255.255.0     On-link        10.8.0.2
   198.51.100.42           255.255.255.255   192.168.0.1    192.168.0.231
-  192.168.0.0             255.255.255.0     On-link        192.168.0.231
+  192.168.0.0             255.255.255.0     On-link        192.168.0.231`;
 
-
-Two things worth reading closely.
-
-
-1. There is no entry for 10.20.0.0 at all. That is why the ping failed -
-   it matched only the default route, went to the home router, and died
-   there. Timed out rather than refused, because nothing was reached.
-
-
-2. That /32 pointing at the home router is the VPN server's own public
-   address, deliberately pinned outside the tunnel.
-
-   Consider what happens if you later push a default route into the
-   tunnel. The encrypted packets carrying the tunnel are addressed to
-   that server. If they matched the new default route they would be sent
-   into the tunnel they are building. Infinite recursion.
-
-   The /32 prevents it, and it works because longest prefix match makes a
-   /32 the most specific route it is possible to have.`;
-
-export const awsVpnBastionThreeFixes = `Three separate things are missing. Add them one at a time, or you will
-not know which one fixed it.
-
-
-# 1. Tell the client where to send VPC traffic.
-#    Pushed directives are delivered during the handshake, so an existing
-#    session will not pick this up. Reconnect.
-
+export const awsVpnBastionThreeFixes = `# 1. in server.conf
 push "route 10.20.0.0 255.255.0.0"
 
+# 2. now, and again at boot
+sysctl -w net.ipv4.ip_forward=1
+echo net.ipv4.ip_forward=1 > /etc/sysctl.d/99-openvpn.conf
 
-# 2. Let the kernel pass packets between interfaces.
-#    Linux is a host, not a router. A packet arriving on one interface
-#    addressed somewhere else is dropped by default.
-
-sysctl -w net.ipv4.ip_forward=1                               # now
-echo net.ipv4.ip_forward=1 > /etc/sysctl.d/99-openvpn.conf    # and at boot
-
-
-# 3. Rewrite the source address on the way out.
-#    Without this the packet leaves with source 10.8.0.2 and the VPC
-#    discards it.
-
+# 3. rewrite the source as the packet leaves
 iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o ens5 -j MASQUERADE
 
-
-# iptables rules live in memory and vanish on reboot:
+# iptables rules live in memory and vanish on reboot
 apt-get install -y iptables-persistent
 netfilter-persistent save`;
 
-export const awsVpnBastionTcpdump = `Six links in the chain. "The VPC is not reachable" means one of them is
-broken, and the question is never which command - it is which link.
+export const awsVpnBastionTcpdumpCommands = `# Watch the same traffic at two points and compare what arrives.
+# Aim at the VPC DNS resolver, because it is a real host in the VPC
+# that is NOT the VPN server - so a reply proves forwarding worked.
 
-
-  1. client route      does the client send 10.20.x.x into the tunnel?
-  2. tunnel            does the packet arrive at the server?
-  3. IP forwarding     will the kernel pass tun0 -> ens5?
-  4. NAT               does it leave with a source AWS will accept?
-  5. security group    does the destination permit it?
-  6. return path       stateful - free if 1 to 5 are right
-
-
-Two commands make every link visible:
-
-  tcpdump -ni tun0 port 53       did it arrive in the tunnel?
-  tcpdump -ni ens5 port 53       did it leave towards the VPC?
-
-
-  tun0        ens5                             diagnosis
-  --------    -----------------------------    -------------------------
-  nothing     nothing                          client route
-  query       nothing                          IP forwarding is off
-  query       query, source 10.8.0.2           NAT missing, AWS drops it
-  query       query, source 10.20.0.142,       security group at the
-              no reply                         destination
-  query       query and reply                  working
-
-
-That table is worth more than any of the individual commands. It turns
-"it does not work" into a location.`;
+tcpdump -ni tun0 port 53       # did it arrive in the tunnel?
+tcpdump -ni ens5 port 53       # did it leave towards the VPC?`;
 
 export const awsVpnBastionPamManual = `# /etc/openvpn/server/server.conf - add the plugin
 plugin /usr/lib/x86_64-linux-gnu/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn

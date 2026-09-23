@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
+import { renderArchitexter } from "architexter";
 
 // helpers
 import { Analytics } from "../../helpers/analytics";
@@ -40,26 +41,23 @@ import { AWSSVG, AWSVPCSVG, AWSEC2SVG } from "../../resources/styles/icons";
 // components
 import BackButton from "../Button/BackButton";
 import Banner from "../Banner/Banner";
+import BeforeAndAfter from "../Visuals/BeforeAndAfter";
+import Exchange from "../Visuals/Exchange";
+import Chain from "../Visuals/Chain";
+import Anatomy from "../Visuals/Anatomy";
+import Capacity from "../Visuals/Capacity";
+import Decision from "../Visuals/Decision";
+import Table from "../Table/Table";
 import { CodeBlockWithCopy } from "../Code/Code";
 
 // code blocks
 import {
-  awsVpnBastionCidrBits,
-  awsVpnBastionCidrNesting,
-  awsVpnBastionKeyFormats,
-  awsVpnBastionRfc1918,
-  awsVpnBastionSubnetReserved,
-  awsVpnBastionKeyChallenge,
-  awsVpnBastionCertInspect,
-  awsVpnBastionServerConfManual,
-  awsVpnBastionFirstConnect,
   awsVpnBastionRoutePrint,
   awsVpnBastionThreeFixes,
-  awsVpnBastionTcpdump,
+  awsVpnBastionTcpdumpCommands,
   awsVpnBastionPamManual,
   awsVpnBastionAddUserManual,
   awsVpnBastionProxyJump,
-  awsVpnBastionLocalForward,
   awsVpnBastionProof,
 } from "../../helpers/codeblocks";
 
@@ -68,6 +66,43 @@ const awsVPNBlogUrl = "https://www.heyitsmeharv.com/blog/aws-vpc";
 const PostContainer = styled(BasePostContainer)`
   animation: ${SlideInBottom} 0.5s forwards;
 `;
+
+const vpnBastionServerConf = `[vpc] server.conf - four questions, not twenty-five directives
+  [public] Where do I listen?
+    [openvpn] port 1194
+    [openvpn] proto udp4
+      (TCP inside TCP causes retransmission storms)
+    [openvpn] dev tun
+      (layer 3 and routed. tap is layer 2 and rarely what you want)
+  [public] Who am I?
+    [openvpn] ca ca.crt / cert server.crt / key server.key
+      (relative paths resolve to /etc/openvpn/server)
+    [openvpn] dh none
+      (ECDSA uses ECDHE - no parameters to sit and generate)
+    [openvpn] tls-crypt tls-crypt.key
+      (wraps the control channel before TLS even begins)
+  [private] Who do I let in?
+    [bastion] remote-cert-tls client
+      (reject anything not marked for client use)
+    [bastion] verify-client-cert require
+      (a certificate stays mandatory, even once 2FA exists)
+    [bastion] crl-verify crl.pem
+      (omit this and revoked certificates keep working)
+  [nat] How do I behave?
+    [openvpn] server 10.8.0.0 255.255.255.0
+      (a macro - it expands into five other directives)
+    [openvpn] topology subnet
+      (one address per client, like a normal network)
+    [openvpn] keepalive 10 120
+      (survives a lid close or a change of network)
+    [openvpn] user nobody / persist-key / persist-tun
+      (these three always travel together)`;
+
+const vpnBastionCidrNesting = `[vpc] 10.20.0.0/16 - the whole VPC
+  [public] 10.20.0.0/24 - public, zone a
+  [public] 10.20.1.0/24 - free, held for zone b
+  [private] 10.20.10.0/24 - private, zone a
+  [private] 10.20.11.0/24 - free, held for zone b`;
 
 const vpnBastionArchitecture = `[vpc] VPC 10.20.0.0/16
   [public] Public Subnet 10.20.0.0/24
@@ -234,8 +269,8 @@ const AWSVPNBastion = () => {
           set of rules about where traffic from those addresses may go. It is
           region bound which is a good thing to note when deciding where to put
           your resources. Not to say that if you decide to put resources in the
-          US they can't be access to EU and visa versa, but there will be
-          latency implications.
+          US they can't be access from the EU and vice versa, but there will be
+          implications for doing so.
         </Paragraph>
 
         <Paragraph>
@@ -253,22 +288,99 @@ const AWSVPNBastion = () => {
         <Paragraph>
           An IPv4 address is 32 bits. The number after the slash says how many
           of those bits are fixed, and the rest are yours to allocate. A{" "}
-          <Strong>larger</Strong> prefix (number at the end) is a{" "}
+          <Strong>larger</Strong> prefix (number after the /) is a{" "}
           <Strong>smaller</Strong> network.
         </Paragraph>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionCidrBits} />
+        <Paragraph>
+          <Strong>
+            You are restricted to using /16 to /28 for the VPC's primary CIDR,
+            and the same range for each subnet inside it.
+          </Strong>
+        </Paragraph>
+
+        <Anatomy
+          caption="Bits Breakdown"
+          value="10.20.0.0/16"
+          segments={[
+            { value: "10", sub: "00001010" },
+            { value: "20", sub: "00010100" },
+            { value: "0", sub: "00000000" },
+            { value: "0", sub: "00000000" },
+          ]}
+          groups={[
+            {
+              from: 0,
+              to: 1,
+              tone: "locked",
+              label: "16 bits fixed",
+              detail: "Every address in this VPC starts with 10.20",
+            },
+            {
+              from: 2,
+              to: 3,
+              label: "16 bits free",
+              detail: "65,536 addresses to hand out",
+            },
+          ]}
+          note={`Increasing the number from 16 will expand the fixed bits to the right 
+          and you lock more bits, which leaves fewer free. Decreasing the number from 16 would do 
+          the opposite and shrink to the left freeing more bits.`}
+        />
+
+        <Table
+          columns={["prefix", "addresses", "what it is usually"]}
+          data={[
+            {
+              prefix: "/16",
+              addresses: "65,536",
+              "what it is usually": "a whole VPC",
+            },
+            {
+              prefix: "/24",
+              addresses: "256",
+              "what it is usually": "one subnet",
+            },
+            {
+              prefix: "/28",
+              addresses: "16",
+              "what it is usually": "the smallest AWS will accept",
+            },
+            {
+              prefix: "/32",
+              addresses: "1",
+              "what it is usually":
+                "a single machine - my laptop, and nothing else",
+            },
+          ]}
+        />
 
         <SubSectionHeading>How does it get allocated?</SubSectionHeading>
 
         <Paragraph>
-          In this example the <InlineHighlight>/16</InlineHighlight> contains
-          every <InlineHighlight>/24</InlineHighlight> that starts with the same
-          first two numbers, which is exactly how a network gets carved into
-          subnets.
+          Although the prefixes are multiples of{" "}
+          <InlineHighlight>8</InlineHighlight> you can pick anything within the
+          allowed range, it's just easier to read as there are 4 parts to the
+          address and it's divisible by 32. Nothing is stopping you using a /20
+          or a /26 you just have to do arithmetic to work out where the
+          boundaries fall - essentially it has to add up to 32.
         </Paragraph>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionCidrNesting} />
+        <CodeBlockWithCopy
+          compact
+          code={renderArchitexter(vpnBastionCidrNesting)}
+        />
+
+        <Paragraph>
+          A <InlineHighlight>/16</InlineHighlight> holds 256 possible{" "}
+          <InlineHighlight>/24</InlineHighlight> blocks. Four are used here and
+          the rest are left alone, which is why the private ranges start at{" "}
+          <InlineHighlight>.10</InlineHighlight> rather than{" "}
+          <InlineHighlight>.2</InlineHighlight> - leaving a deliberate gap makes
+          it obvious at a glance which tier an address belongs to. Address space
+          costs nothing. Being able to read an address without looking it up is
+          worth more than the addresses it spends.
+        </Paragraph>
 
         <SubSectionHeading>Preventing Overlap</SubSectionHeading>
 
@@ -281,7 +393,65 @@ const AWSVPNBastion = () => {
           network failures.
         </Paragraph>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionRfc1918} />
+        <Table
+          columns={["block", "addresses", "meant for"]}
+          data={[
+            {
+              block: "10.0.0.0/8",
+              addresses: "16,777,216",
+              "meant for": "very large organisations",
+            },
+            {
+              block: "172.16.0.0/12",
+              addresses: "1,048,576",
+              "meant for": "medium ones",
+            },
+            {
+              block: "192.168.0.0/16",
+              addresses: "65,536",
+              "meant for": "small networks",
+            },
+          ]}
+        />
+
+        <Paragraph>
+          All three were reserved on the same day, in the same document, for the
+          same reason - RFC 1918, February 1996. Their <Strong>sizes</Strong>{" "}
+          are why there are three of them, and the old class sizes are also why
+          the middle one stops at <InlineHighlight>172.31</InlineHighlight>{" "}
+          rather than <InlineHighlight>172.255</InlineHighlight>: sixteen
+          consecutive <InlineHighlight>/16</InlineHighlight> blocks starting at{" "}
+          <InlineHighlight>172.16</InlineHighlight> ends there. The boundary
+          only looks arbitrary until you do the arithmetic.
+        </Paragraph>
+
+        <Banner title="The quick test, and the three that catch people out">
+          <Paragraph>
+            Anything starting <InlineHighlight>10.</InlineHighlight> is private.
+            Anything starting <InlineHighlight>192.168.</InlineHighlight> is
+            private. Anything starting <InlineHighlight>172.</InlineHighlight>{" "}
+            is private <Strong>only</Strong> if the second number is between 16
+            and 31. Everything else is public and belongs to somebody.
+          </Paragraph>
+          <Paragraph>
+            Which makes <InlineHighlight>172.15.x.x</InlineHighlight>,{" "}
+            <InlineHighlight>172.32.x.x</InlineHighlight> and{" "}
+            <InlineHighlight>192.167.x.x</InlineHighlight> all public, and all
+            three look private enough at a glance to be picked by mistake.
+          </Paragraph>
+        </Banner>
+
+        <Paragraph>
+          It is also worth getting the causality the right way round, because it
+          is usually told backwards.{" "}
+          <InlineHighlight>192.168.x.x</InlineHighlight> is not reserved because
+          home routers use it. Home routers use it <Strong>because</Strong> it
+          was reserved. The same goes for AWS picking{" "}
+          <InlineHighlight>172.31.0.0/16</InlineHighlight> for default VPCs and
+          Docker picking <InlineHighlight>172.17.0.0/16</InlineHighlight> for
+          its bridge - vendor habits the reservation made possible, not
+          allocations.
+        </Paragraph>
 
         <SubSectionHeading>What comes with a VPC?</SubSectionHeading>
 
@@ -333,92 +503,138 @@ const AWSVPNBastion = () => {
           again is because of how AWS handle assigning your resources inside
           subnets. When creating resources you might pick{" "}
           <InlineHighlight>eu-west-2a</InlineHighlight> but AWS shuffles the
-          mapping so that customers do not all pile into the zone whose name
-          sorts first. Check the zone ID which should be something like{" "}
-          <InlineHighlight>euw2-az2</InlineHighlight>, and that does refer to
-          the actual physical place the resources are in.
-        </Paragraph>
-
-        <CodeBlockWithCopy compact code={awsVpnBastionSubnetReserved} />
-
-        <SubSectionHeading>One availability zone, on purpose</SubSectionHeading>
-
-        <Paragraph>
-          Everything here lives in one zone. All traffic stays inside it, which
-          avoids cross-zone data charges and removes any dependency on reaching
-          a resource across a zone boundary.
+          mapping so that people do not all pick the same zone. The zone ID
+          which should be something like{" "}
+          <InlineHighlight>euw2-az2</InlineHighlight>, and that is the source of
+          truth to where the resources live.
         </Paragraph>
 
         <Paragraph>
-          The honest reason is that a second zone would protect against an event
-          rarer than the thing it would cost. A VPN serving a handful of people
-          that goes down for ten minutes while an instance relaunches is an
-          inconvenience. If this were carrying a company's remote access, that
-          calculation changes.
+          The other thing to know before sizing anything is that{" "}
+          <Strong>AWS takes five addresses out of every subnet</Strong>,
+          whatever size it is.
         </Paragraph>
 
         <Paragraph>
-          It is worth knowing what the fix would actually be, because the
-          obvious answer is wrong. Running two VPN servers is hard, and not for
-          capacity reasons - an OpenVPN server holds state its clients depend
-          on. It has a <Strong>certificate authority</Strong> (install it twice
-          and you have two unrelated authorities, so a client issued by one is
-          rejected by the other), it has each user's second-factor secret, and
-          it has an address baked into every profile you have handed out.
-          Stateless things are trivially made redundant. Stateful ones are hard,
-          and the work is always in moving the state somewhere both copies can
-          see it.
+          They are always the same five: the first address, the next three, and
+          the last one. The first is the network address and the last is
+          broadcast, which is conventional. The three in between are AWS's - a
+          router at <InlineHighlight>.1</InlineHighlight>, a DNS resolver at{" "}
+          <InlineHighlight>.2</InlineHighlight>, and one held back at{" "}
+          <InlineHighlight>.3</InlineHighlight> for whatever they want next.
         </Paragraph>
 
         <Paragraph>
-          The cheaper answer for a single server is an auto scaling group with
-          its minimum, maximum and desired count all set to one, spanning
-          subnets in two zones. The group itself costs nothing. But a
-          replacement is a brand new instance built from an image, so it comes
-          up with a blank disk, a different private address and no Elastic IP
-          attached - a working VPN that no existing client certificate can
-          authenticate against. Making that work means keeping the certificate
-          authority, the certificates and the configuration somewhere regional
-          and restoring them at boot. Under a pound a month. The cost is
-          complexity, not money.
+          Five sounds trivial. Whether it is depends entirely on how big the
+          subnet is, and that is easier to see than to say:
+        </Paragraph>
+
+        <Capacity
+          caption="The same five addresses, two subnet sizes, drawn to scale"
+          blocks={[
+            {
+              label: "10.20.0.0/24",
+              sub: "256 addresses",
+              total: 256,
+              marked: [0, 1, 2, 3, 255],
+              legend: "5 gone, 251 yours - about 2%",
+            },
+            {
+              label: "10.20.0.0/28",
+              sub: "16 addresses",
+              total: 16,
+              marked: [0, 1, 2, 3, 15],
+              legend: "5 gone, 11 yours - nearly a third",
+            },
+          ]}
+          note={`Same five squares in both. On a /24 you would struggle to find them
+          without the highlight. On a /28 they are impossible to miss, and that is the
+          entire reason small subnets run out sooner than the arithmetic suggests.`}
+        />
+
+        <Paragraph>
+          Remember <InlineHighlight>10.20.0.2</InlineHighlight>. That resolver
+          is the thing a VPN client has to be able to reach if it is ever going
+          to resolve anything inside the VPC, and it is the right target to aim
+          at later when working out whether traffic is reaching past the VPN
+          server.
         </Paragraph>
 
         <SubSectionHeading>
+          {" "}
           What an internet gateway actually does
         </SubSectionHeading>
 
         <Paragraph>
-          It has two jobs, and the second one surprises people. The first is to
-          be a <Strong>target</Strong>: a route table entry saying "everything
-          else goes to the internet gateway" is what makes a subnet public. The
-          second is <Strong>one-to-one address translation</Strong>.
+          Two things. It is the destination you point a route at, which is the
+          part everyone knows. The second one catches people out:{" "}
+          <Strong>it swaps addresses as traffic passes through</Strong>.
         </Paragraph>
 
-        <Banner title="An instance never holds its own public IP">
+        <Paragraph>
+          Your instance has one address, the private one, and that is the only
+          one it will ever use. On the way out the gateway replaces it with the
+          public address. On the way back it does the reverse. The instance is
+          never involved and never told.
+        </Paragraph>
+
+        <BeforeAndAfter
+          caption="Internet gateway - what changes"
+          stage="internet gateway"
+          steps={[
+            {
+              label: "Your laptop connects to the VPN server",
+              before: [
+                ["from", "203.0.113.7"],
+                ["to", "198.51.100.42"],
+              ],
+              after: [
+                ["from", "203.0.113.7"],
+                ["to", "10.20.0.142"],
+              ],
+            },
+            {
+              label: "The server replies",
+              before: [
+                ["from", "10.20.0.142"],
+                ["to", "203.0.113.7"],
+              ],
+              after: [
+                ["from", "198.51.100.42"],
+                ["to", "203.0.113.7"],
+              ],
+            },
+          ]}
+          note={`One field changes each way, and the mapping is permanent - one public
+          address to one private address, sitting in the table before anyone knocks. That
+          is what makes inbound traffic possible at all, and it is the single difference
+          between this and the NAT gateway in the next section.`}
+        />
+
+        <Banner title="The public IP is not on the machine">
           <Paragraph>
-            Run <InlineHighlight>ip addr</InlineHighlight> on an EC2 instance
-            with a public address and you will see only the private one. The
-            public address exists in the gateway's translation table, and
-            traffic is rewritten as it passes through in each direction.
+            Log in and ask the operating system what its address is, and you
+            will see the private one and nothing else. The public address is
+            real, and traffic sent to it does arrive - but it lives in the
+            gateway's table, not on the server.
           </Paragraph>
           <Paragraph>
-            Software on the instance therefore cannot discover its own public
-            address by asking the operating system, because the operating system
-            was never told. It has to ask the instance metadata service. Every
-            tool that auto-detects a public endpoint is doing this, and every
-            one of them gets the wrong answer if the address changes after boot
-            - which is exactly what happens when you attach an Elastic IP to a
-            running instance.
+            So software cannot find out its own public address by asking the
+            operating system, because the operating system was never told. It
+            has to ask the metadata service instead. Any tool that works out its
+            own public endpoint is doing exactly that, and if it asks at first
+            boot and you attach an Elastic IP afterwards, it has already cached
+            the wrong answer.
           </Paragraph>
         </Banner>
 
         <Paragraph>
-          An internet gateway is free, there is one per VPC, and it is
-          horizontally scaled and redundant across zones with no bandwidth limit
-          and nothing to size. The NAT gateway in the next section is none of
-          those things. One thing to watch: creating a gateway and attaching it
-          to a VPC are two separate actions, and an unattached gateway is a
-          valid object that does nothing.
+          One gateway per VPC, free, no bandwidth limit, nothing to size, and
+          redundant across zones with no configuration. The NAT gateway in the
+          next section is none of those things. The only thing to watch is that
+          creating a gateway and attaching it to a VPC are two separate steps -
+          an unattached one is a perfectly valid object that does nothing at
+          all.
         </Paragraph>
 
         <SubSectionHeading>
@@ -531,6 +747,37 @@ const AWSVPNBastion = () => {
           from the inside.
         </Paragraph>
 
+        <BeforeAndAfter
+          caption="NAT gateway - the same swap, one direction only"
+          stage="NAT gateway"
+          steps={[
+            {
+              label: "The bastion fetches an update",
+              before: [
+                ["from", "10.20.10.161"],
+                ["to", "203.0.113.80"],
+              ],
+              after: [
+                ["from", "192.0.2.55"],
+                ["to", "203.0.113.80"],
+              ],
+            },
+            {
+              label: "Somebody on the internet tries to connect in",
+              before: [
+                ["from", "203.0.113.7"],
+                ["to", "192.0.2.55"],
+              ],
+              blocked:
+                "No entry in the table, so there is no private address to rewrite the destination to. Nothing to deliver it to, and nothing to refuse it with.",
+            },
+          ]}
+          note={`Compare this with the internet gateway. The outbound row is identical -
+          same mechanism, same rewrite. The difference is entirely in when the table entry
+          is created. The gateway's entries exist permanently; these are created by traffic
+          leaving, which means an unsolicited packet arrives to find nothing waiting for it.`}
+        />
+
         <Banner title="It does not refuse the packet. It has nowhere to send it.">
           <Paragraph>
             That is a stronger guarantee than a firewall rule, because there is
@@ -637,16 +884,29 @@ const AWSVPNBastion = () => {
           works before you have any logs at all:
         </Paragraph>
 
-        <TextList>
-          <TextListItem>
-            <Strong>Connection refused</Strong> means you reached the machine
-            and nothing was listening on that port.
-          </TextListItem>
-          <TextListItem>
-            <Strong>Connection timed out</Strong> means you never reached the
-            machine. A security group, a missing route, or the wrong address.
-          </TextListItem>
-        </TextList>
+        <Decision
+          caption="The most useful two seconds of debugging in this whole post"
+          question="The connection failed. What exactly did it say?"
+          branches={[
+            {
+              answer: "connection refused",
+              outcome: "You reached the machine.",
+              detail:
+                "The network did its job and something at the far end said no. Nothing was listening on that port - the service is down, or you have the wrong port.",
+              tone: "ok",
+            },
+            {
+              answer: "connection timed out",
+              outcome: "You never reached the machine.",
+              detail:
+                "Nothing answered because nothing received it. A security group, a missing route, or the wrong address entirely.",
+              tone: "warn",
+            },
+          ]}
+          note={`Same failure as far as you are concerned, and two completely different
+          halves of the stack to go and look at. Worth reading the error properly rather
+          than skimming it, because it has already told you which half.`}
+        />
 
         <Paragraph>
           Those two outcomes point at completely different halves of the stack,
@@ -790,7 +1050,32 @@ const AWSVPNBastion = () => {
           internalising - not when you log in.
         </Paragraph>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionKeyChallenge} />
+        <Exchange
+          caption="What happens when you log in with a key"
+          parties={["your laptop", "the server"]}
+          entries={[
+            {
+              dir: "right",
+              text: "I would like to authenticate with this public key",
+            },
+            {
+              aside: "is that key listed in authorized_keys for this user?",
+              side: "right",
+            },
+            { dir: "left", text: "prove it - sign this random challenge" },
+            { dir: "right", text: "the signed challenge" },
+            {
+              aside: "verifies the signature against the public key",
+              side: "right",
+              outcome: "access granted",
+            },
+          ]}
+          note={`The private key never crosses the wire. Not encrypted, not hashed. The
+          challenge is different every time, so a recording of the exchange is worth
+          nothing to whoever recorded it. Compare a password, which has to travel to the
+          server to be checked - a compromised server learns a credential it can reuse,
+          where a compromised server here learns nothing at all.`}
+        />
 
         <SubSectionHeading>The format trap</SubSectionHeading>
 
@@ -803,7 +1088,35 @@ const AWSVPNBastion = () => {
           that does not produce it.
         </Paragraph>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionKeyFormats} />
+        <Table
+          columns={[
+            "where it comes from",
+            "how you recognise it",
+            "what it is for",
+          ]}
+          data={[
+            {
+              "where it comes from": "the paste box at the top of the window",
+              "how you recognise it":
+                "one line, starting ssh-ed25519 or ssh-rsa",
+              "what it is for":
+                "authorized_keys, AWS, GitHub - this is the one you want",
+            },
+            {
+              "where it comes from": "the Save public key button",
+              "how you recognise it":
+                "several lines, wrapped in BEGIN SSH2 PUBLIC KEY",
+              "what it is for":
+                "RFC 4716. AWS accepts it for RSA keys only, so with an Ed25519 key it simply fails",
+            },
+            {
+              "where it comes from": "the Save private key button",
+              "how you recognise it": "a .ppk file",
+              "what it is for":
+                "stays on your machine and goes into Pageant. Never upload it anywhere",
+            },
+          ]}
+        />
 
         <Paragraph>
           There is no button that saves the OpenSSH form. The one-line version
@@ -1145,7 +1458,52 @@ const AWSVPNBastion = () => {
 
         <SubSectionHeading>Reading a certificate</SubSectionHeading>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionCertInspect} />
+        <Paragraph>
+          Open one up and there are four fields worth knowing. Everything else
+          is scaffolding.
+        </Paragraph>
+
+        <Table
+          columns={["field", "what it says", "why it matters"]}
+          data={[
+            {
+              field: "Issuer",
+              "what it says": "CN = secure-remote-access-ca",
+              "why it matters": "who vouched for this certificate",
+            },
+            {
+              field: "Subject",
+              "what it says": "CN = server",
+              "why it matters": "who the certificate is about",
+            },
+            {
+              field: "Basic Constraints",
+              "what it says": "CA:FALSE",
+              "why it matters":
+                "this is a leaf, not an authority — it cannot sign anything itself",
+            },
+            {
+              field: "Extended Key Usage",
+              "what it says": "TLS Web Server Authentication",
+              "why it matters":
+                "the field that stops a server certificate being used to connect as a client. A client certificate reads Web Client Authentication instead",
+            },
+          ]}
+        />
+
+        <Paragraph>
+          That last row is the one doing real work. Both certificates are signed
+          by the same authority and both are entirely valid — one field is all
+          that separates being a server from being a client.
+        </Paragraph>
+
+        <Paragraph>
+          Run the same check against the <Strong>authority's own</Strong>{" "}
+          certificate and its subject and issuer come back identical. That is
+          what self-signed means, visible in one line — and it is also how you
+          catch the mistake described further down, because a{" "}
+          <Strong>server</Strong> certificate should never look like that.
+        </Paragraph>
 
         <Paragraph>
           Two other choices are worth explaining.{" "}
@@ -1188,7 +1546,10 @@ const AWSVPNBastion = () => {
           do I let in, and how do I behave.
         </Paragraph>
 
-        <CodeBlockWithCopy code={awsVpnBastionServerConfManual} />
+        <CodeBlockWithCopy
+          compact
+          code={renderArchitexter(vpnBastionServerConf)}
+        />
 
         <Paragraph>
           A few of those are doing more work than they look.
@@ -1219,6 +1580,24 @@ const AWSVPNBastion = () => {
             your whole revocation story a fiction.
           </TextListItem>
         </TextList>
+
+        <Paragraph>
+          That pool is worth pausing on, because it is a{" "}
+          <Strong>separate network from the VPC</Strong>, existing only inside
+          the tunnel. The server takes{" "}
+          <InlineHighlight>10.8.0.1</InlineHighlight> for itself and hands out{" "}
+          <InlineHighlight>10.8.0.2</InlineHighlight> upwards to clients, one
+          address each.
+        </Paragraph>
+
+        <Paragraph>
+          It explains something that happens two sections from now. A freshly
+          connected client can ping <InlineHighlight>10.8.0.1</InlineHighlight>{" "}
+          immediately, but not <InlineHighlight>10.20.0.142</InlineHighlight> -
+          and both of those addresses belong to the same server. One is a
+          neighbour on the little network inside the tunnel. The other is across
+          a boundary nothing has been built to cross yet.
+        </Paragraph>
 
         <Banner title="Privilege dropping forces two other directives">
           <Paragraph>
@@ -1346,7 +1725,42 @@ const AWSVPNBastion = () => {
           The checkpoint that teaches the most
         </SubSectionHeading>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionFirstConnect} />
+        <Paragraph>
+          Connect for the first time and three things happen. Every one of them
+          is the correct result, including the one that looks like a failure.
+        </Paragraph>
+
+        <Table
+          columns={["what you run", "what happens", "why that is right"]}
+          data={[
+            {
+              "what you run": "ipconfig",
+              "what happens": "a new adapter holding 10.8.0.2",
+              "why that is right":
+                "the tunnel exists and the server has given you an address from its pool",
+            },
+            {
+              "what you run": "ping 10.8.0.1",
+              "what happens": "replies",
+              "why that is right":
+                "the server's tunnel address. Your own interface is in 10.8.0.0/24, so it is directly attached — no routing involved",
+            },
+            {
+              "what you run": "ping 10.20.0.142",
+              "what happens": "times out",
+              "why that is right":
+                "the same server, by its VPC address. Nothing has told the client to send 10.20.x.x into the tunnel, and even if it had, the server would not forward it",
+            },
+          ]}
+        />
+
+        <Paragraph>
+          You have a tunnel and nothing else. Two of those addresses belong to
+          the same machine and only one of them answers, which is the clearest
+          possible demonstration that a tunnel and a route are different things.
+          "I pushed the route and still cannot reach anything" is the most
+          common OpenVPN complaint there is, and this is where it starts.
+        </Paragraph>
 
         <Paragraph>
           The client's own routing table shows exactly why, and it contains one
@@ -1355,6 +1769,37 @@ const AWSVPNBastion = () => {
 
         <CodeBlockWithCopy compact code={awsVpnBastionRoutePrint} />
 
+        <Paragraph>
+          There is <Strong>no entry for 10.20.0.0 at all</Strong>. That is why
+          the ping failed: it matched only the default route, went to the home
+          router, and died there. Timed out rather than refused, because nothing
+          was ever reached - the distinction from earlier, doing useful work.
+        </Paragraph>
+
+        <Paragraph>
+          The line worth staring at is the third one. That{" "}
+          <InlineHighlight>/32</InlineHighlight> pointing at the home router is
+          the VPN server's own public address, deliberately pinned{" "}
+          <Strong>outside</Strong> the tunnel.
+        </Paragraph>
+
+        <Banner title="A route that stops the tunnel eating itself">
+          <Paragraph>
+            Consider what happens if you later push a default route into the
+            tunnel, so that all traffic goes through the VPN. The encrypted
+            packets <Strong>carrying</Strong> the tunnel are themselves
+            addressed to that server. If they matched the new default route,
+            they would be sent into the tunnel they are busy building.
+          </Paragraph>
+          <Paragraph>
+            The <InlineHighlight>/32</InlineHighlight> prevents it, and it works
+            because of longest prefix match: a{" "}
+            <InlineHighlight>/32</InlineHighlight> is the most specific route it
+            is possible to have, so it always wins. OpenVPN installs it without
+            being asked, and most people never notice it is there.
+          </Paragraph>
+        </Banner>
+
         {/* ── 11. Routing, forwarding and NAT ───────────────────────────────── */}
         <SectionHeading>Routing, Forwarding and NAT</SectionHeading>
 
@@ -1362,6 +1807,30 @@ const AWSVPNBastion = () => {
           Three things are missing, not one, and each fails differently. Adding
           them one at a time is the only way to know which one fixed it.
         </Paragraph>
+
+        <Chain
+          caption="Three fixes, three different failures"
+          links={[
+            {
+              name: "Tell the client where to send VPC traffic",
+              detail:
+                "push a route for 10.20.0.0/16. Pushed directives are delivered during the handshake, so an existing session will not pick it up — reconnect.",
+            },
+            {
+              name: "Let the kernel pass packets between interfaces",
+              detail:
+                "Linux is a host, not a router. A packet arriving on one interface addressed somewhere else is dropped by default. Enable it now and at boot, or you get a VPN that works perfectly until the first reboot.",
+            },
+            {
+              name: "Rewrite the source address on the way out",
+              detail:
+                "without this the packet leaves carrying a VPN client address, and the VPC discards it for two separate reasons.",
+            },
+          ]}
+          note={`Add them one at a time. Do all three at once and you learn nothing about
+          which one was actually missing — and each of these fails in a different way,
+          which is the useful part.`}
+        />
 
         <CodeBlockWithCopy code={awsVpnBastionThreeFixes} />
 
@@ -1411,7 +1880,34 @@ const AWSVPNBastion = () => {
 
         <Paragraph>
           The fix is to rewrite the source address as the packet leaves, so
-          every packet genuinely originates from the instance's own address.
+          every packet genuinely originates from the instance's own address. If
+          that sounds familiar, it should - it is the third time in this post
+          that the same mechanism has appeared.
+        </Paragraph>
+
+        <BeforeAndAfter
+          caption="The VPN server - the same swap again, this time you wrote it"
+          stage="VPN server"
+          steps={[
+            {
+              label: "A VPN client reaches the bastion",
+              before: [
+                ["from", "10.8.0.2"],
+                ["to", "10.20.10.161"],
+              ],
+              after: [
+                ["from", "10.20.0.142"],
+                ["to", "10.20.10.161"],
+              ],
+            },
+          ]}
+          note={`Identical in shape to the internet gateway and the NAT gateway. The only
+          difference is that AWS runs those two for you, and this one is a single line of
+          iptables you added yourself. Recognising it as the same thing is worth more than
+          remembering the command.`}
+        />
+
+        <Paragraph>
           Which produces a result worth stating clearly, because nearly every
           guide to running OpenVPN on EC2 says the opposite.
         </Paragraph>
@@ -1444,7 +1940,80 @@ const AWSVPNBastion = () => {
           The chain, and how to find the break
         </SubSectionHeading>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionTcpdump} />
+        <Chain
+          caption="Six links - one of them is broken"
+          links={[
+            {
+              name: "client route",
+              detail:
+                "does the client send 10.20.x.x into the tunnel, or out to the home router?",
+            },
+            {
+              name: "tunnel",
+              detail: "does the packet arrive at the server at all?",
+            },
+            {
+              name: "IP forwarding",
+              detail:
+                "will the kernel pass it from the tunnel to the network interface?",
+            },
+            {
+              name: "NAT",
+              detail:
+                "does it leave carrying a source address AWS will accept?",
+            },
+            {
+              name: "security group",
+              detail: "does the destination permit it?",
+            },
+            {
+              name: "return path",
+              detail:
+                "stateful, so this one is free if the first five are right",
+            },
+          ]}
+          note={`"The VPC is not reachable" means one of these is broken, and the question
+          is never which command to run. It is which link. Two tcpdump commands - one on
+          the tunnel interface, one on the network interface - make every link observable.`}
+        />
+
+        <CodeBlockWithCopy compact code={awsVpnBastionTcpdumpCommands} />
+
+        <Table
+          columns={["on the tunnel", "on the interface", "what it means"]}
+          data={[
+            {
+              "on the tunnel": "nothing",
+              "on the interface": "nothing",
+              "what it means": "client route - it never entered the tunnel",
+            },
+            {
+              "on the tunnel": "the query",
+              "on the interface": "nothing",
+              "what it means": "IP forwarding is off",
+            },
+            {
+              "on the tunnel": "the query",
+              "on the interface": "the query, from 10.8.0.2",
+              "what it means": "NAT is missing - AWS will drop this",
+            },
+            {
+              "on the tunnel": "the query",
+              "on the interface": "the query, from 10.20.0.142, no reply",
+              "what it means": "a security group at the destination",
+            },
+            {
+              "on the tunnel": "the query",
+              "on the interface": "the query, and a reply",
+              "what it means": "working",
+            },
+          ]}
+        />
+
+        <Paragraph>
+          That table is worth more than either of the commands. It turns "it
+          does not work" into a location.
+        </Paragraph>
 
         <Paragraph>
           One more decision hides in here. Pushing a default route sends{" "}
@@ -1589,7 +2158,64 @@ const AWSVPNBastion = () => {
           Port forwarding, and the thing everyone gets wrong
         </SubSectionHeading>
 
-        <CodeBlockWithCopy compact code={awsVpnBastionLocalForward} />
+        <Anatomy
+          caption="Three values, and only one of them means what people assume"
+          value="ssh -L 8080:localhost:8080 ec2-user@10.20.10.161"
+          segments={[
+            { value: "8080" },
+            { value: "localhost" },
+            { value: "8080" },
+          ]}
+          groups={[
+            {
+              from: 0,
+              to: 0,
+              label: "opened here",
+              detail: "a port on your own laptop",
+            },
+            {
+              from: 1,
+              to: 1,
+              tone: "locked",
+              label: "resolved there",
+              detail: "from the bastion, not from your machine",
+            },
+            {
+              from: 2,
+              to: 2,
+              label: "connected to there",
+              detail: "the port on whatever that name resolved to",
+            },
+          ]}
+          note={`The middle value is the one that catches everybody. localhost means the
+          bastion, because the name is resolved and connected to from the far end of the
+          tunnel. People read it as their own machine and then cannot work out why nothing
+          connects.`}
+        />
+
+        <Paragraph>
+          Which sets up the part worth understanding. Run something on port 8080
+          on the bastion, where{" "}
+          <Strong>no security group rule permits 8080</Strong>. Go at it
+          directly over the VPN and you are blocked. Go through the tunnel to{" "}
+          <InlineHighlight>localhost:8080</InlineHighlight> and it works.
+        </Paragraph>
+
+        <Banner title="The security group was never in the path">
+          <Paragraph>
+            The connection to 8080 originates{" "}
+            <Strong>on the bastion, to itself</Strong>. No network interface, no
+            VPC network, and therefore no security group anywhere along it. The
+            only thing the security group ever saw was your SSH session on port
+            22, which it allows.
+          </Paragraph>
+          <Paragraph>
+            That is what a tunnel fundamentally does: it converts your traffic
+            into traffic that originates somewhere else. Worth holding onto,
+            because it is also the reason tunnels are a favourite technique for
+            getting around network controls that look airtight on a diagram.
+          </Paragraph>
+        </Banner>
 
         <Paragraph>
           There are three forward types and it is worth knowing all of them.{" "}
