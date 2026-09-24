@@ -362,8 +362,8 @@ const AWSVPNBastion = () => {
           <InlineHighlight>8</InlineHighlight> you can pick anything within the
           allowed range, it's just easier to read as there are 4 parts to the
           address and it's divisible by 32. Nothing is stopping you using a /20
-          or a /26 you just have to do arithmetic to work out where the
-          boundaries fall - essentially it has to add up to 32.
+          or a /26 you just have to do the calculations to work out where the
+          boundaries fall.
         </Paragraph>
 
         <CodeBlockWithCopy
@@ -560,10 +560,7 @@ const AWSVPNBastion = () => {
           server.
         </Paragraph>
 
-        <SubSectionHeading>
-          {" "}
-          What an internet gateway actually does
-        </SubSectionHeading>
+        <SubSectionHeading>The internet gateway</SubSectionHeading>
 
         <Paragraph>
           Two things. It is the destination you point a route at, which is the
