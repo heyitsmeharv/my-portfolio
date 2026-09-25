@@ -3,7 +3,7 @@ const TEXT = {
     introductionText:
       "I have multiple years of experience delivering large-scale commercial web applications written in React.js and hosted on AWS cloud infrastructure.",
     introductionTextExtended:
-      "I'm currently an AWS-certified platform engineer building DevOps and cloud-native solutions using AWS, Terraform, and CI/CD tools.",
+      "I'm currently an AWS-certified platform engineer building DevOps and cloud-native solutions.",
     introductionStandoutLabel: "In a few words",
     introductionStandoutLabelSecondary: "In a few more",
     contactMe: "Contact Me",
@@ -101,7 +101,7 @@ const TEXT = {
     introductionText:
       "Tengo múltiples años de experiencia en la entrega de aplicaciones web comerciales a gran escala, escritas en React.js y alojadas en la infraestructura de la nube de AWS.",
     introductionTextExtended:
-      "Actualmente soy un ingeniero de plataforma certificado por AWS que construye soluciones DevOps y nativas de la nube utilizando AWS, Terraform y herramientas CI/CD.",
+      "Actualmente soy un ingeniero de plataforma certificado por AWS que construye soluciones DevOps y nativas de la nube.",
     introductionStandoutLabel: "En pocas palabras",
     introductionStandoutLabelSecondary: "En unas cuantas más",
     contactMe: "Cont\u00e1ctame",

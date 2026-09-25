@@ -525,6 +525,35 @@ export const MySQLSVG = () => {
   );
 };
 
+export const SQLSVG = () => {
+  return (
+    <StyledSvg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M40 56v144c0 15.5 39.4 28 88 28s88-12.5 88-28V56z"
+        fill="#00758F"
+      />
+      <path
+        d="M40 168c0 15.5 39.4 28 88 28s88-12.5 88-28"
+        fill="none"
+        stroke="#005A6E"
+        strokeWidth="4"
+      />
+      <ellipse cx="128" cy="56" rx="88" ry="28" fill="#4DB6CF" />
+      <text
+        x="128"
+        y="156"
+        textAnchor="middle"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize="64"
+        fontWeight="700"
+        fill="#FFFFFF"
+      >
+        SQL
+      </text>
+    </StyledSvg>
+  );
+};
+
 export const HerokuSVG = () => {
   return (
     <StyledSvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2500 2500">

@@ -156,11 +156,14 @@ const ITEMS = {
       period: "Sep 2022 - Present",
       location: "Oxford, UK",
       bullets: [
+        "Led production deployments involving risk analysis, backup and rollback planning, and disaster recovery.",
+        "Designed and implemented automated EC2 patch management using AWS Systems Manager and reusable Terraform, with OS-specific patch baselines, scheduled scan and install windows, and phased production rollouts.",
         "Built, developed and supported different CI/CD solutions including GitHub Workflows, AWS CodePipeline and CodeDeploy.",
-        "Architected and developed internal tools to automate application specific tasks using Terraform, AWS EventBridge and DynamoDB.",
-        "Converted multiple applications and services from EC2 to ECS.",
+        "Architected and developed an internal scheduling service to automate application specific tasks using Terraform, AWS EventBridge and DynamoDB.",
+        "Modernised legacy AWS workloads by migrating production applications from EC2 to ECS.",
         "Implemented application monitoring for applications through AWS CloudWatch, including RUM, Synthetics and X-Ray.",
         "Standardised content delivery processes with semantic versioning.",
+        "Supported security audits and penetration testing by managing vulnerability scanners, analysing findings, and remediating identified vulnerabilities across multiple AWS environments.",
       ],
     },
     {
@@ -186,11 +189,14 @@ const ITEMS = {
       period: "Sep 2022 - Actualidad",
       location: "Oxford, Reino Unido",
       bullets: [
+        "Lidere despliegues en produccion con analisis de riesgos, planes de copia de seguridad y rollback, y recuperacion ante desastres.",
+        "Disene e implemente la gestion automatizada de parches en EC2 con AWS Systems Manager y Terraform reutilizable, con baselines de parches por sistema operativo, ventanas programadas de escaneo e instalacion, y despliegues escalonados en produccion.",
         "Disene, desarrolle y mantuve distintas soluciones de CI/CD con GitHub Workflows, AWS CodePipeline y CodeDeploy.",
-        "Arquitete y desarrolle herramientas internas para automatizar tareas especificas de aplicaciones usando Terraform, AWS EventBridge y DynamoDB.",
-        "Migre varias aplicaciones y servicios de EC2 a ECS.",
+        "Arquitete y desarrolle un servicio interno de planificacion para automatizar tareas especificas de aplicaciones usando Terraform, AWS EventBridge y DynamoDB.",
+        "Modernice cargas de trabajo heredadas en AWS migrando aplicaciones de produccion de EC2 a ECS.",
         "Implemente monitorizacion de aplicaciones con AWS CloudWatch, incluyendo RUM, Synthetics y X-Ray.",
         "Estandarice procesos de entrega de contenido mediante versionado semantico.",
+        "Di soporte a auditorias de seguridad y pruebas de penetracion gestionando escaneres de vulnerabilidades, analizando hallazgos y corrigiendo vulnerabilidades en multiples entornos de AWS.",
       ],
     },
     {
@@ -220,7 +226,7 @@ const ProfessionalExperience = ({ language }) => {
         <Header>
           <Title>{experienceText(language)}</Title>
           <ViewCV
-            href="https://heyitsmeharv.s3.eu-west-2.amazonaws.com/AH_CV.pdf"
+            href="https://heyitsmeharv.s3.eu-west-2.amazonaws.com/AH_CV_Latest.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >
