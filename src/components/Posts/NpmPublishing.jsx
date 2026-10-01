@@ -186,14 +186,14 @@ const NpmPublishing = () => {
         </HeaderRow>
 
         <Paragraph>
-          I've dabbled with publishing packages to npm in the past and I have
-          most recently done so for{" "}
+          I want to give a quick overview of publishing packages to npm, and I
+          have most recently done so for{" "}
           <TextLink href={repoUrl} target="_blank" rel="noreferrer">
             architexter
           </TextLink>
           , a small package I use across this portfolio to render text outlines
-          as ASCII diagrams. I thought that it would make for a decent topic -
-          as I'm definitely not running out of blogging ideas!
+          as ASCII diagrams. I thought that it would make for a decent topic and
+          a good reference for next time I need to brush up on the process.
         </Paragraph>
 
         <ProjectArchitecture
