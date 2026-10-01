@@ -94,20 +94,20 @@ const allPosts = [
     navigate: "javascript-objects",
     published: true,
   },
-  {
-    title: "React.js Text Based Adventure Game",
-    readingTime: "N/A",
-    type: "Practical",
-    date: "07/05/2023",
-    tags: [
-      { name: "React", background: "#20232a", icon: <ReactjsSVG /> },
-      { name: "JavaScript", background: "#F4BF36", icon: <JavascriptSVG /> },
-    ],
-    intro: `I've been contemplating on whether or not to do a separate blog post to explain what the React.js framework is but I want to move away from my last posts and get stuck in with building something!
-      If you're completely new to React I would recommend having a gander at their documentation...`,
-    navigate: "react-text-based-adventure",
-    published: false,
-  },
+  // {
+  //   title: "React.js Text Based Adventure Game",
+  //   readingTime: "N/A",
+  //   type: "Practical",
+  //   date: "07/05/2023",
+  //   tags: [
+  //     { name: "React", background: "#20232a", icon: <ReactjsSVG /> },
+  //     { name: "JavaScript", background: "#F4BF36", icon: <JavascriptSVG /> },
+  //   ],
+  //   intro: `I've been contemplating on whether or not to do a separate blog post to explain what the React.js framework is but I want to move away from my last posts and get stuck in with building something!
+  //     If you're completely new to React I would recommend having a gander at their documentation...`,
+  //   navigate: "react-text-based-adventure",
+  //   published: false,
+  // },
   {
     title: "AWS IAM",
     readingTime: "approx 8 minutes",
@@ -428,17 +428,17 @@ const allPosts = [
     navigate: "aws-security-encryption",
     published: true,
   },
-  {
-    title: "Getting Started with Bash Scripting",
-    readingTime: "approx 45 mins",
-    type: "Practical",
-    date: "09/10/2025",
-    tags: [{ name: "Bash", background: "#2d3436", icon: <BashSVG /> }],
-    intro: `When you first start working in the command line, it can feel like stepping into a different world - one where you're talking directly to your computer instead of clicking buttons.
-      It's intimidating at first, but once you realise how much power sits behind a few keystrokes it's addictive. In this post...`,
-    navigate: "getting-started-with-bash-scripting",
-    published: true,
-  },
+  // {
+  //   title: "Getting Started with Bash Scripting",
+  //   readingTime: "approx 45 mins",
+  //   type: "Practical",
+  //   date: "09/10/2025",
+  //   tags: [{ name: "Bash", background: "#2d3436", icon: <BashSVG /> }],
+  //   intro: `When you first start working in the command line, it can feel like stepping into a different world - one where you're talking directly to your computer instead of clicking buttons.
+  //     It's intimidating at first, but once you realise how much power sits behind a few keystrokes it's addictive. In this post...`,
+  //   navigate: "getting-started-with-bash-scripting",
+  //   published: true,
+  // },
   {
     title: "GitHub CI/CD",
     readingTime: "approx 5 mins",
@@ -450,20 +450,20 @@ const allPosts = [
     navigate: "github-ci-cd",
     published: true,
   },
-  {
-    title: "Introduction to Docker and Kubernetes",
-    readingTime: "approx 60 mins",
-    type: "Practical",
-    date: "10/12/2025",
-    tags: [
-      { name: "Docker", background: "#fff", icon: <DockerSVG /> },
-      { name: "Kubernetes", background: "#326DE6", icon: <KubernetesSVG /> },
-    ],
-    intro: `This is a practical learning path built around one tiny project: a "virtual shell" playground: a small service that feels like a terminal you can poke at safely, plus a helper service
-      so it becomes a real system instead of a single container...`,
-    navigate: "intro-to-docker-kubernetes",
-    published: true,
-  },
+  // {
+  //   title: "Introduction to Docker and Kubernetes",
+  //   readingTime: "approx 60 mins",
+  //   type: "Practical",
+  //   date: "10/12/2025",
+  //   tags: [
+  //     { name: "Docker", background: "#fff", icon: <DockerSVG /> },
+  //     { name: "Kubernetes", background: "#326DE6", icon: <KubernetesSVG /> },
+  //   ],
+  //   intro: `This is a practical learning path built around one tiny project: a "virtual shell" playground: a small service that feels like a terminal you can poke at safely, plus a helper service
+  //     so it becomes a real system instead of a single container...`,
+  //   navigate: "intro-to-docker-kubernetes",
+  //   published: true,
+  // },
   {
     title: "Infrastructure as Code (IaC) with Terraform",
     readingTime: "approx 25 mins",
@@ -495,20 +495,20 @@ const allPosts = [
     navigate: "semantic-versioning-with-conventional-commits",
     published: true,
   },
-  {
-    title:
-      "Docker & Kubernetes: Security, StatefulSets, and Cluster Management",
-    readingTime: "approx 20 mins",
-    type: "Practical",
-    date: "06/04/2026",
-    tags: [
-      { name: "Docker", background: "#fff", icon: <DockerSVG /> },
-      { name: "Kubernetes", background: "#326DE6", icon: <KubernetesSVG /> },
-    ],
-    intro: `Part two of the Docker and Kubernetes series. Covers Pod Security Standards, container security contexts, StatefulSets with persistent storage, and cluster management with namespaces and resource quotas...`,
-    navigate: "docker-kubernetes-advanced",
-    published: true,
-  },
+  // {
+  //   title:
+  //     "Docker & Kubernetes: Security, StatefulSets, and Cluster Management",
+  //   readingTime: "approx 20 mins",
+  //   type: "Practical",
+  //   date: "06/04/2026",
+  //   tags: [
+  //     { name: "Docker", background: "#fff", icon: <DockerSVG /> },
+  //     { name: "Kubernetes", background: "#326DE6", icon: <KubernetesSVG /> },
+  //   ],
+  //   intro: `Part two of the Docker and Kubernetes series. Covers Pod Security Standards, container security contexts, StatefulSets with persistent storage, and cluster management with namespaces and resource quotas...`,
+  //   navigate: "docker-kubernetes-advanced",
+  //   published: true,
+  // },
   {
     title: "Building Your Own Analytics Stack",
     readingTime: "approx 18 mins",
@@ -517,7 +517,7 @@ const allPosts = [
     tags: [
       { name: "Terraform", background: "#7B42BC", icon: <TerraformSVG /> },
       { name: "AWS", background: "#FF9900", icon: <AWSSVG /> },
-      { name: "React", background: "#20232a", icon: <ReactjsSVG /> },
+      { name: "JavaScript", background: "#F4BF36", icon: <JavascriptSVG /> },
     ],
     intro: `I was using Google Analytics on this portfolio and it bothered me more than it should have. Not for any deep privacy reason - more that I was sending every visitor's data to Google just to see which blog 
     posts people actually read. It felt lazy. So I built quiet-ly instead...`,
@@ -557,7 +557,6 @@ const allPosts = [
     tags: [
       { name: "npm", background: "#CB3837", icon: <NpmSVG /> },
       { name: "JavaScript", background: "#F4BF36", icon: <JavascriptSVG /> },
-      { name: "React", background: "#20232a", icon: <ReactjsSVG /> },
     ],
     intro: `I've dabbled with publishing packages to npm in the past and I have most recently done so for architexter, a small package I use across this portfolio to render text outlines as ASCII diagrams. I thought that it would make for a decent topic...`,
     navigate: "publishing-an-npm-package",
